@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # SQLite no soporta RENAME COLUMN directamente en versiones antiguas
+        # Algunos backends (p.ej. SQLite en versiones antiguas) no soportan RENAME COLUMN
         # Necesitamos recrear la tabla con el nombre correcto
         migrations.RunSQL(
             sql="""

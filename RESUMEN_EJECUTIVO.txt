@@ -129,7 +129,7 @@ DatosBiograficos545 (Model) ↔ DatosBiograficos545Form
 
 ┌─────────────────────────────────────────────────────────────┐
 │ SERVIDOR DJANGO                              ✅ FUNCIONANDO │
-│ BASE DE DATOS (SQLite3)                      ✅ CONECTADA   │
+│ BASE DE DATOS (PostgreSQL)                   ✅ CONECTADA   │
 │ Modelos Django                               ✅ SINCRONIZADOS│
 │ Formularios                                  ✅ OPERACIONALES│
 │ Formsets (incluido anidamiento 382)          ✅ FUNCIONALES │

@@ -82,13 +82,18 @@ WSGI_APPLICATION = "marc21_project.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# Database configuration
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+# switched from sqlite3 to PostgreSQL; use environment variables for flexibility
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-        "OPTIONS": {
-            "timeout": 20,
-        },
+        "ENGINE": "django.db.backends.postgresql",
+        # these values can be overridden by environment variables
+        "NAME": os.environ.get("POSTGRES_DB", "blmp"),
+        "USER": os.environ.get("POSTGRES_USER", "postgres"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", ""),
+        "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
+        "PORT": os.environ.get("POSTGRES_PORT", "5432"),
     }
 }
 

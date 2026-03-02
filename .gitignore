@@ -70,7 +70,6 @@ cover/
 *.log
 local_settings.py
 db.sqlite3
-db.sqlite3-journal
 
 # Flask stuff:
 instance/
@@ -221,14 +220,11 @@ venv/
 __pycache__/
 *.pyc
 
-# Archivos de base de datos locales
-db.sqlite3
 
 # Archivos temporales
 *.log
 *.pot
 *.py[cod]
-*.sqlite3
 
 # Configuraciones privadas
 .env
