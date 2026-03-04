@@ -1,0 +1,22 @@
+# Copia este archivo como local_settings.py y rellena tus credenciales locales.
+# Este archivo SÍ se sube al repo (es la plantilla).
+# local_settings.py NO se sube (está en .gitignore).
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "blmp_local",
+        "USER": "postgres",
+        "PASSWORD": "",        # tu contraseña de PostgreSQL local
+        "HOST": "localhost",
+        "PORT": "5432",
+    }
+}
+
+DEBUG = True
+
+# Desactivar cookies seguras en local (no hay HTTPS)
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SAMESITE = "Lax"

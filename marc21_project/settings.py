@@ -193,3 +193,9 @@ CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SAMESITE = "None"
 SESSION_COOKIE_SAMESITE = "None"
+
+# Sobrescrituras locales (credenciales, debug, etc.) — este archivo NO se sube al repo
+try:
+    from .local_settings import *  # noqa: F401, F403
+except ImportError:
+    pass
