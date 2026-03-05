@@ -378,18 +378,6 @@ class CrearObraView(CatalogadorRequiredMixin, ObraFormsetMixin, CreateView):
         self.object.save()
 
         # =====================================================
-        # 382 – Medios de interpretación
-        # =====================================================
-        medios_formset = formsets.get("medios_interpretacion")
-        if medios_formset:
-            medios = medios_formset.save(commit=False)
-            for m in medios:
-                m.obra = self.object
-                m.save()
-            for m in medios_formset.deleted_objects:
-                m.delete()
-
-        # =====================================================
         # 🔥 GUARDAR TODOS LOS FORMSETS (856 INCLUIDO)
         # IMPORTANTE: Esto debe hacerse ANTES de procesar w_773_/w_774_/w_787_
         # porque esos procesos necesitan que los enlace ya existan en BD

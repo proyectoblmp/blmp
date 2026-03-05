@@ -512,7 +512,6 @@ class ObraFormsetMixin:
                         # Si ambos campos están vacíos, eliminar el registro existente
                         if not texto and not uri:
                             DatosBiograficos545.objects.filter(obra=instance).delete()
-                            DatosBiograficos545.objects.filter(obra=instance).delete()
                         else:
                             DatosBiograficos545.objects.update_or_create(
                                 obra=instance,

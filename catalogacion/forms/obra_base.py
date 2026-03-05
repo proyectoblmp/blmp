@@ -434,9 +434,9 @@ class ObraGeneralForm(forms.ModelForm):
                     persona.save()
                 cleaned_data["compositor"] = persona
             except AutoridadPersona.DoesNotExist:
-                persona = AutoridadPersona.objects.create(
+                persona, _ = AutoridadPersona.objects.get_or_create(
                     apellidos_nombres=compositor_texto,
-                    coordenadas_biograficas=compositor_coordenadas,
+                    defaults={"coordenadas_biograficas": compositor_coordenadas},
                 )
                 cleaned_data["compositor"] = persona
             except AutoridadPersona.MultipleObjectsReturned:

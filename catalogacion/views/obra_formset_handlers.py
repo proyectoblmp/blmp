@@ -200,7 +200,7 @@ def _save_textos_enlace_856(request_post, disponibles):
             continue
 
         try:
-            disponible = disponibles[0]
+            disponible = disponibles.pop(0)
         except IndexError:
             break
 
