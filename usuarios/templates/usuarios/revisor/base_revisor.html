@@ -1,0 +1,210 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Panel del Revisor{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- CSS Base Global -->
+    <link href="{% static 'css/base.css' %}" rel="stylesheet">
+    <!-- Reutilizar CSS del catalogador para la estructura del sidebar -->
+    <link href="{% static 'usuarios/css/base-catalogador.css' %}" rel="stylesheet">
+
+    <style>
+        :root {
+            --revisor-accent: #16a34a;
+            --revisor-accent-light: #22c55e;
+        }
+        /* Colorear el sidebar con el acento del revisor */
+        .sidebar-brand i { color: var(--revisor-accent) !important; }
+        .nav-link.active { border-left-color: var(--revisor-accent) !important; }
+        .role-badge { background: #dcfce7; color: #15803d; }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <!-- Overlay para móvil -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Tooltip para sidebar colapsado -->
+    <div class="sidebar-tooltip" id="sidebarTooltip"></div>
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="{% url 'usuarios:revisor_dashboard' %}" class="sidebar-brand">
+                <i class="bi bi-eye"></i>
+                <span>Revisor</span>
+            </a>
+            <button class="sidebar-toggle" id="sidebarToggle" title="Contraer menú">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+        </div>
+
+        <div class="sidebar-nav">
+            <a class="nav-link {% if request.resolver_match.url_name == 'revisor_dashboard' %}active{% endif %}"
+               href="{% url 'usuarios:revisor_dashboard' %}"
+               data-tooltip="Inicio">
+                <i class="bi bi-house-door"></i>
+                <span>Inicio</span>
+            </a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'lista_obras' or request.resolver_match.url_name == 'detalle_obra' %}active{% endif %}"
+               href="{% url 'catalogacion:lista_obras' %}"
+               data-tooltip="Ver Obras">
+                <i class="bi bi-collection"></i>
+                <span>Ver Obras</span>
+            </a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
+               href="{% url 'catalogo_publico:home' %}"
+               data-tooltip="Catálogo Público">
+                <i class="bi bi-globe"></i>
+                <span>Catálogo Público</span>
+            </a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'perfil' %}active{% endif %}"
+               href="{% url 'usuarios:perfil' %}"
+               data-tooltip="Mi Perfil">
+                <i class="bi bi-person-circle"></i>
+                <span>Mi Perfil</span>
+            </a>
+        </div>
+
+        <div class="sidebar-footer">
+            <form method="post" action="{% url 'usuarios:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="nav-link border-0 bg-transparent w-100 text-start" data-tooltip="Cerrar Sesión">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </form>
+        </div>
+    </nav>
+
+    <!-- Botón para expandir sidebar cuando está colapsado -->
+    <button class="expand-btn" id="expandBtn" title="Expandir menú">
+        <i class="bi bi-chevron-right"></i>
+    </button>
+
+    <!-- Main Content -->
+    <div class="main-wrapper">
+        <!-- Top Bar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="mobile-toggle" id="mobileToggle" aria-label="Abrir menú">
+                    <i class="bi bi-list"></i>
+                </button>
+                <h1>{% block page_title %}Inicio{% endblock %}</h1>
+            </div>
+            <div class="topbar-right">
+                <a href="{% url 'usuarios:perfil' %}" class="user-info text-decoration-none" style="color:inherit;">
+                    <i class="bi bi-person-circle"></i>
+                    <span>{{ user.nombre_completo|default:user.email }}</span>
+                </a>
+                <span class="role-badge">Revisor</span>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <main class="content-area">
+            {% if messages %}
+            <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1090;">
+                {% for message in messages %}
+                <div class="toast align-items-center text-bg-{{ message.tags }} border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            {% if message.tags == 'success' %}<i class="bi bi-check-circle me-1"></i>
+                            {% elif message.tags == 'error' %}<i class="bi bi-x-circle me-1"></i>
+                            {% elif message.tags == 'warning' %}<i class="bi bi-exclamation-triangle me-1"></i>
+                            {% else %}<i class="bi bi-info-circle me-1"></i>{% endif %}
+                            {{ message }}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.toast.show').forEach(function(toastEl) {
+                setTimeout(function() {
+                    bootstrap.Toast.getOrCreateInstance(toastEl).hide();
+                }, 4000);
+            });
+
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const mobileToggle = document.getElementById('mobileToggle');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const expandBtn = document.getElementById('expandBtn');
+            const tooltip = document.getElementById('sidebarTooltip');
+
+            const savedState = localStorage.getItem('revisorSidebarCollapsed');
+            if (savedState === 'true' && window.innerWidth > 992) {
+                sidebar.classList.add('no-transition', 'collapsed');
+                requestAnimationFrame(() => requestAnimationFrame(() => sidebar.classList.remove('no-transition')));
+            }
+
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                localStorage.setItem('revisorSidebarCollapsed', sidebar.classList.contains('collapsed'));
+            });
+
+            expandBtn.addEventListener('click', function() {
+                sidebar.classList.remove('collapsed');
+                localStorage.setItem('revisorSidebarCollapsed', 'false');
+            });
+
+            sidebar.querySelectorAll('.nav-link[data-tooltip]').forEach(link => {
+                link.addEventListener('mouseenter', function() {
+                    if (sidebar.classList.contains('collapsed') && window.innerWidth > 992) {
+                        const rect = this.getBoundingClientRect();
+                        tooltip.textContent = this.getAttribute('data-tooltip');
+                        tooltip.style.top = (rect.top + rect.height / 2) + 'px';
+                        tooltip.classList.add('visible');
+                    }
+                });
+                link.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
+            });
+
+            mobileToggle.addEventListener('click', function() {
+                sidebar.classList.add('mobile-open');
+                sidebarOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+
+            sidebarOverlay.addEventListener('click', function() {
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 992) {
+                    sidebar.classList.remove('mobile-open');
+                    sidebarOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

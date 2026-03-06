@@ -27,10 +27,25 @@ class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     """
     Mixin que verifica que el usuario sea administrador.
     """
-    
+
     def test_func(self):
         return self.request.user.es_admin
-    
+
+    def handle_no_permission(self):
+        if not self.request.user.is_authenticated:
+            return redirect('usuarios:login')
+        messages.error(self.request, 'No tienes permisos para acceder a esta sección.')
+        return redirect('catalogo_publico:home')
+
+
+class RevisorRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
+    """
+    Mixin que verifica que el usuario pueda revisar (revisor o admin).
+    """
+
+    def test_func(self):
+        return self.request.user.puede_revisar
+
     def handle_no_permission(self):
         if not self.request.user.is_authenticated:
             return redirect('usuarios:login')

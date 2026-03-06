@@ -1,0 +1,240 @@
+{% extends 'usuarios/admin/base_admin.html' %}
+
+{% block title %}{{ titulo }} - Admin{% endblock %}
+{% block page_title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="catalogador-form-container">
+    <div class="catalogador-form-card">
+        <div class="catalogador-form-header">
+            <div class="catalogador-form-icon">
+                <i class="bi bi-person-{% if accion == 'Crear' %}plus{% else %}gear{% endif %}"></i>
+            </div>
+            <div class="catalogador-form-header-text">
+                <h2 class="catalogador-form-title">{{ titulo }}</h2>
+                <p class="catalogador-form-subtitle">
+                    {% if accion == 'Crear' %}Complete los datos para registrar un nuevo usuario{% else %}Modifique los datos del usuario{% endif %}
+                </p>
+            </div>
+        </div>
+
+        <form method="post" novalidate class="catalogador-form">
+            {% csrf_token %}
+
+            <div class="catalogador-form-body">
+                <!-- Información de cuenta -->
+                <div class="form-section">
+                    <div class="form-section-header">
+                        <i class="bi bi-person-badge"></i>
+                        <span>Información de Cuenta</span>
+                    </div>
+                    <div class="form-grid-2col">
+                        <!-- Email -->
+                        <div class="form-field">
+                            <label for="id_email" class="form-label required">
+                                <i class="bi bi-at"></i> Email
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="email" name="email" id="id_email"
+                                       class="form-input {% if form.email.errors %}has-error{% endif %}"
+                                       value="{{ form.email.value|default:'' }}"
+                                       placeholder="correo@ejemplo.com" autocomplete="email">
+                                <span class="input-icon"><i class="bi bi-envelope"></i></span>
+                            </div>
+                            {% if form.email.errors %}
+                            <div class="form-error"><i class="bi bi-exclamation-triangle-fill"></i> {{ form.email.errors.0 }}</div>
+                            {% endif %}
+                            <span class="form-hint">Será el correo para iniciar sesión</span>
+                        </div>
+
+                        <!-- Nombre -->
+                        <div class="form-field">
+                            <label for="id_nombre_completo" class="form-label">
+                                <i class="bi bi-person-badge"></i> Nombre Completo
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="text" name="nombre_completo" id="id_nombre_completo"
+                                       class="form-input {% if form.nombre_completo.errors %}has-error{% endif %}"
+                                       value="{{ form.nombre_completo.value|default:'' }}"
+                                       placeholder="Nombre y apellido" autocomplete="name">
+                                <span class="input-icon"><i class="bi bi-person"></i></span>
+                            </div>
+                            {% if form.nombre_completo.errors %}
+                            <div class="form-error"><i class="bi bi-exclamation-triangle-fill"></i> {{ form.nombre_completo.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        {% if form.password1 %}
+                        <!-- Contraseña -->
+                        <div class="form-field">
+                            <label for="id_password1" class="form-label required">
+                                <i class="bi bi-lock"></i> Contraseña
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="password" name="password1" id="id_password1"
+                                       class="form-input {% if form.password1.errors %}has-error{% endif %}"
+                                       placeholder="Contraseña temporal (mín. 8 caracteres)" autocomplete="new-password">
+                                <span class="input-icon"><i class="bi bi-lock"></i></span>
+                            </div>
+                            {% if form.password1.errors %}
+                            <div class="form-error"><i class="bi bi-exclamation-triangle-fill"></i> {{ form.password1.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-field">
+                            <label for="id_password2" class="form-label required">
+                                <i class="bi bi-lock-fill"></i> Confirmar Contraseña
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="password" name="password2" id="id_password2"
+                                       class="form-input {% if form.password2.errors %}has-error{% endif %}"
+                                       placeholder="Repite la contraseña" autocomplete="new-password">
+                                <span class="input-icon"><i class="bi bi-lock-fill"></i></span>
+                            </div>
+                            {% if form.password2.errors %}
+                            <div class="form-error"><i class="bi bi-exclamation-triangle-fill"></i> {{ form.password2.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Rol y permisos -->
+                <div class="form-section" style="margin-top:1.5rem;">
+                    <div class="form-section-header">
+                        <i class="bi bi-shield-lock"></i>
+                        <span>Rol y Permisos</span>
+                    </div>
+                    <div class="form-grid-2col">
+                        <!-- Rol -->
+                        <div class="form-field">
+                            <label for="id_rol" class="form-label required">
+                                <i class="bi bi-person-lock"></i> Rol
+                            </label>
+                            <div class="select-wrapper">
+                                <select name="rol" id="id_rol"
+                                        class="form-select {% if form.rol.errors %}has-error{% endif %}"
+                                        onchange="toggleTipoCatalogador(this.value)">
+                                    {% for value, label in form.fields.rol.choices %}
+                                    <option value="{{ value }}" {% if form.rol.value == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <span class="select-icon"><i class="bi bi-chevron-down"></i></span>
+                            </div>
+                            {% if form.rol.errors %}
+                            <div class="form-error"><i class="bi bi-exclamation-triangle-fill"></i> {{ form.rol.errors.0 }}</div>
+                            {% endif %}
+                            <span class="form-hint">Define los accesos del usuario en el sistema</span>
+                        </div>
+
+                        <!-- Tipo catalogador (visible solo si rol = catalogador) -->
+                        <div class="form-field" id="campo-tipo-catalogador"
+                             style="{% if form.rol.value != 'catalogador' %}display:none;{% endif %}">
+                            <label for="id_tipo_catalogador" class="form-label">
+                                <i class="bi bi-mortarboard"></i> Tipo de Catalogador
+                            </label>
+                            <div class="select-wrapper">
+                                <select name="tipo_catalogador" id="id_tipo_catalogador"
+                                        class="form-select {% if form.tipo_catalogador.errors %}has-error{% endif %}">
+                                    {% for value, label in form.fields.tipo_catalogador.choices %}
+                                    <option value="{{ value }}" {% if form.tipo_catalogador.value == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <span class="select-icon"><i class="bi bi-chevron-down"></i></span>
+                            </div>
+                            {% if form.tipo_catalogador.errors %}
+                            <div class="form-error"><i class="bi bi-exclamation-triangle-fill"></i> {{ form.tipo_catalogador.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Opciones de cuenta -->
+                    <div class="form-checkboxes" style="margin-top:1rem; display:flex; gap:2rem; flex-wrap:wrap;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="activo" id="id_activo"
+                                   {% if form.activo.value %}checked{% endif %}
+                                   class="admin-form-checkbox">
+                            <span><i class="bi bi-toggle-on"></i> Cuenta activa</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="debe_cambiar_password" id="id_debe_cambiar_password"
+                                   {% if form.debe_cambiar_password.value %}checked{% endif %}
+                                   class="admin-form-checkbox">
+                            <span><i class="bi bi-key"></i> Forzar cambio de contraseña en el próximo inicio de sesión</span>
+                        </label>
+                    </div>
+                </div>
+
+                {% if form.non_field_errors %}
+                <div class="form-error" style="margin-top:1rem;">
+                    <i class="bi bi-exclamation-triangle-fill"></i> {{ form.non_field_errors.0 }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="catalogador-form-footer">
+                <a href="{% url 'usuarios:lista_usuarios' %}" class="btn-cancel">
+                    <i class="bi bi-x-lg"></i> Cancelar
+                </a>
+                <button type="submit" class="btn-submit">
+                    <i class="bi bi-{% if accion == 'Crear' %}person-plus{% else %}check-lg{% endif %}"></i>
+                    {{ accion }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.catalogador-form-container { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
+.catalogador-form-card { background: var(--admin-white); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); overflow: hidden; }
+.catalogador-form-header { display:flex; align-items:center; gap:1rem; padding:1.25rem 1.5rem; background:linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-light) 100%); color:white; }
+.catalogador-form-icon { width:50px; height:50px; background:rgba(255,255,255,0.15); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.catalogador-form-icon i { font-size:1.35rem; color:white; }
+.catalogador-form-title { font-size:1.125rem; font-weight:600; margin:0 0 0.125rem; }
+.catalogador-form-subtitle { font-size:0.8125rem; opacity:0.85; margin:0; }
+.catalogador-form-body { padding:1.5rem; }
+.form-section-header { display:flex; align-items:center; gap:0.5rem; margin-bottom:1.25rem; font-size:0.8125rem; font-weight:600; color:var(--admin-primary); text-transform:uppercase; letter-spacing:0.05em; }
+.form-grid-2col { display:grid; grid-template-columns:repeat(2, 1fr); gap:1.25rem; }
+.form-field { display:flex; flex-direction:column; gap:0.375rem; }
+.form-label { display:flex; align-items:center; gap:0.5rem; font-size:0.8125rem; font-weight:500; color:var(--admin-text); }
+.form-label i { font-size:0.875rem; color:var(--admin-text-light); }
+.form-label.required::after { content:'*'; color:var(--admin-danger); margin-left:0.25rem; }
+.input-wrapper, .select-wrapper { position:relative; }
+.input-icon, .select-icon { position:absolute; right:0.75rem; top:50%; transform:translateY(-50%); color:var(--admin-text-muted); pointer-events:none; font-size:0.875rem; }
+.form-input, .form-select { width:100%; padding:0.625rem 2.5rem 0.625rem 0.875rem; border:1.5px solid var(--admin-border); border-radius:8px; font-size:0.875rem; color:var(--admin-text); background:var(--admin-white); transition:all 0.2s ease; }
+.form-input::placeholder { color:var(--admin-text-muted); }
+.form-input:focus, .form-select:focus { outline:none; border-color:var(--admin-primary); box-shadow:0 0 0 3px rgba(41,48,66,0.1); }
+.form-input.has-error, .form-select.has-error { border-color:var(--admin-danger); }
+.form-select { appearance:none; cursor:pointer; }
+.form-error { display:flex; align-items:center; gap:0.375rem; font-size:0.75rem; color:var(--admin-danger); padding:0.25rem 0.5rem; background:rgba(220,53,69,0.08); border-radius:4px; }
+.form-hint { font-size:0.7rem; color:var(--admin-text-light); }
+.checkbox-label { display:flex; align-items:center; gap:0.5rem; font-size:0.8125rem; color:var(--admin-text); cursor:pointer; }
+.checkbox-label input { width:16px; height:16px; cursor:pointer; }
+.checkbox-label span { display:flex; align-items:center; gap:0.35rem; }
+.catalogador-form-footer { display:flex; align-items:center; justify-content:flex-end; gap:0.75rem; padding:1rem 1.5rem; background:var(--admin-bg); border-top:1px solid var(--admin-border-light); }
+.btn-cancel, .btn-submit { display:inline-flex; align-items:center; gap:0.5rem; padding:0.5rem 1rem; border-radius:8px; font-size:0.8125rem; font-weight:500; cursor:pointer; transition:all 0.2s ease; text-decoration:none; }
+.btn-cancel { background:var(--admin-white); color:var(--admin-text); border:1.5px solid var(--admin-border); }
+.btn-cancel:hover { background:var(--admin-bg); color:var(--admin-text); }
+.btn-submit { background:var(--admin-primary); color:white; border:1.5px solid var(--admin-primary); }
+.btn-submit:hover { background:var(--admin-primary-light); border-color:var(--admin-primary-light); }
+@media (max-width: 768px) {
+    .catalogador-form-container { padding:1rem; }
+    .form-grid-2col { grid-template-columns:1fr; }
+    .catalogador-form-footer { flex-direction:column-reverse; gap:0.5rem; }
+    .btn-cancel, .btn-submit { width:100%; justify-content:center; }
+}
+</style>
+
+<script>
+function toggleTipoCatalogador(rol) {
+    const campo = document.getElementById('campo-tipo-catalogador');
+    campo.style.display = rol === 'catalogador' ? '' : 'none';
+}
+// Ejecutar al cargar para manejar el estado inicial (edición)
+document.addEventListener('DOMContentLoaded', function() {
+    const rolSelect = document.getElementById('id_rol');
+    if (rolSelect) toggleTipoCatalogador(rolSelect.value);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'usuarios/revisor/base_revisor.html' %}
+
+{% block title %}Panel del Revisor{% endblock %}
+{% block page_title %}Panel del Revisor{% endblock %}
+
+{% block content %}
+<div style="padding:0.5rem 0;">
+    <!-- Bienvenida -->
+    <div style="background:white;border-radius:12px;padding:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:1.5rem;display:flex;align-items:center;gap:1.25rem;">
+        <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#16a34a,#15803d);display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:white;flex-shrink:0;">
+            {{ user.email|slice:":1"|upper }}
+        </div>
+        <div>
+            <h2 style="margin:0;font-size:1.25rem;font-weight:700;color:#1e293b;">
+                Bienvenido, {{ user.nombre_completo|default:user.email }}
+            </h2>
+            <p style="margin:0.25rem 0 0;font-size:0.875rem;color:#64748b;">
+                Tienes acceso de <strong>lectura</strong> al catálogo musical. Puedes revisar y consultar todos los registros.
+            </p>
+        </div>
+    </div>
+
+    <!-- Acciones rápidas -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-bottom:1.5rem;">
+        <a href="{% url 'catalogacion:lista_obras' %}"
+           style="background:white;border-radius:12px;padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.08);text-decoration:none;display:flex;align-items:center;gap:1rem;border:1.5px solid transparent;transition:all 0.2s ease;"
+           onmouseover="this.style.borderColor='#16a34a';this.style.boxShadow='0 4px 6px -1px rgba(22,163,74,0.15)';"
+           onmouseout="this.style.borderColor='transparent';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.08)';">
+            <div style="width:44px;height:44px;border-radius:10px;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="bi bi-collection" style="font-size:1.25rem;color:#16a34a;"></i>
+            </div>
+            <div>
+                <p style="margin:0;font-size:0.875rem;font-weight:600;color:#1e293b;">Ver Obras</p>
+                <p style="margin:0;font-size:0.75rem;color:#64748b;">Consultar el catálogo</p>
+            </div>
+        </a>
+
+        <a href="{% url 'catalogo_publico:home' %}"
+           style="background:white;border-radius:12px;padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.08);text-decoration:none;display:flex;align-items:center;gap:1rem;border:1.5px solid transparent;transition:all 0.2s ease;"
+           onmouseover="this.style.borderColor='#2563eb';this.style.boxShadow='0 4px 6px -1px rgba(37,99,235,0.15)';"
+           onmouseout="this.style.borderColor='transparent';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.08)';">
+            <div style="width:44px;height:44px;border-radius:10px;background:#dbeafe;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="bi bi-globe" style="font-size:1.25rem;color:#2563eb;"></i>
+            </div>
+            <div>
+                <p style="margin:0;font-size:0.875rem;font-weight:600;color:#1e293b;">Catálogo Público</p>
+                <p style="margin:0;font-size:0.75rem;color:#64748b;">Ver interfaz pública</p>
+            </div>
+        </a>
+
+        <a href="{% url 'usuarios:perfil' %}"
+           style="background:white;border-radius:12px;padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.08);text-decoration:none;display:flex;align-items:center;gap:1rem;border:1.5px solid transparent;transition:all 0.2s ease;"
+           onmouseover="this.style.borderColor='#7c3aed';this.style.boxShadow='0 4px 6px -1px rgba(124,58,237,0.15)';"
+           onmouseout="this.style.borderColor='transparent';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.08)';">
+            <div style="width:44px;height:44px;border-radius:10px;background:#ede9fe;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="bi bi-person-circle" style="font-size:1.25rem;color:#7c3aed;"></i>
+            </div>
+            <div>
+                <p style="margin:0;font-size:0.875rem;font-weight:600;color:#1e293b;">Mi Perfil</p>
+                <p style="margin:0;font-size:0.75rem;color:#64748b;">Ver y editar mi cuenta</p>
+            </div>
+        </a>
+    </div>
+
+    <!-- Nota informativa -->
+    <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:12px;padding:1.25rem;display:flex;align-items:flex-start;gap:0.75rem;">
+        <i class="bi bi-info-circle-fill" style="font-size:1.25rem;color:#16a34a;flex-shrink:0;margin-top:2px;"></i>
+        <div>
+            <p style="margin:0;font-size:0.875rem;font-weight:600;color:#15803d;">Permisos de Revisor</p>
+            <p style="margin:0.25rem 0 0;font-size:0.8125rem;color:#166534;">
+                Como revisor tienes acceso de <strong>solo lectura</strong> al catálogo musical.
+                Puedes consultar todos los registros pero no crear ni modificar obras.
+                Si necesitas permisos adicionales, contacta a un administrador.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,281 @@
+{% extends 'usuarios/admin/base_admin.html' %}
+
+{% block title %}Gestión de Usuarios - Admin{% endblock %}
+{% block page_title %}Gestión de Usuarios{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h2 class="admin-card-title">
+            <i class="bi bi-people"></i>
+            Usuarios
+        </h2>
+        <a href="{% url 'usuarios:crear_usuario' %}" class="admin-btn admin-btn-primary admin-btn-sm">
+            <i class="bi bi-person-plus"></i> Nuevo Usuario
+        </a>
+    </div>
+
+    <!-- Filtros por rol -->
+    <div style="padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--admin-border-light); display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+        <a href="{% url 'usuarios:lista_usuarios' %}"
+           class="rol-filter-btn {% if not rol_filtro %}active{% endif %}">
+            Todos ({{ total_catalogadores|add:total_revisores|add:total_admins }})
+        </a>
+        <a href="?rol={{ ROL_CATALOGADOR }}"
+           class="rol-filter-btn catalogador {% if rol_filtro == ROL_CATALOGADOR %}active{% endif %}">
+            <i class="bi bi-pencil-square"></i> Catalogadores ({{ total_catalogadores }})
+        </a>
+        <a href="?rol={{ ROL_REVISOR }}"
+           class="rol-filter-btn revisor {% if rol_filtro == ROL_REVISOR %}active{% endif %}">
+            <i class="bi bi-eye"></i> Revisores ({{ total_revisores }})
+        </a>
+        <a href="?rol={{ ROL_ADMIN }}"
+           class="rol-filter-btn admin {% if rol_filtro == ROL_ADMIN %}active{% endif %}">
+            <i class="bi bi-shield-lock"></i> Administradores ({{ total_admins }})
+        </a>
+    </div>
+
+    {% if usuarios %}
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Tipo</th>
+                    <th>Estado</th>
+                    <th>Registro</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usuario in usuarios %}
+                <tr>
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-avatar avatar-{{ usuario.rol }}">
+                                {{ usuario.email|slice:":1"|upper }}
+                            </div>
+                            <span class="user-name">{{ usuario.nombre_completo|default:"—" }}</span>
+                        </div>
+                    </td>
+                    <td class="user-email-cell">{{ usuario.email }}</td>
+                    <td>
+                        <span class="rol-badge rol-{{ usuario.rol }}">
+                            {% if usuario.rol == ROL_CATALOGADOR %}<i class="bi bi-pencil-square"></i>{% endif %}
+                            {% if usuario.rol == ROL_REVISOR %}<i class="bi bi-eye"></i>{% endif %}
+                            {% if usuario.rol == ROL_ADMIN %}<i class="bi bi-shield-lock"></i>{% endif %}
+                            {{ usuario.get_rol_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if usuario.rol == ROL_CATALOGADOR %}
+                        <span class="tipo-badge tipo-{{ usuario.tipo_catalogador }}">
+                            {{ usuario.get_tipo_catalogador_display }}
+                        </span>
+                        {% else %}
+                        <span class="tipo-badge tipo-na">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="status-badge {% if usuario.activo %}active{% else %}inactive{% endif %}">
+                            {% if usuario.activo %}Activo{% else %}Inactivo{% endif %}
+                        </span>
+                        {% if usuario.debe_cambiar_password %}
+                        <span class="status-badge" style="background:#fef3c7;color:#92400e;margin-left:4px;" title="Debe cambiar su contraseña">
+                            <i class="bi bi-key"></i>
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="date-cell">{{ usuario.fecha_creacion|date:"d/m/Y" }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{% url 'usuarios:editar_usuario' usuario.pk %}"
+                               class="action-btn edit" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'usuarios:reset_password_usuario' usuario.pk %}"
+                               class="action-btn" title="Resetear contraseña"
+                               style="background:#f0fdf4;color:#16a34a;border:1.5px solid #bbf7d0;">
+                                <i class="bi bi-key"></i>
+                            </a>
+                            {% if usuario.activo %}
+                            <button type="button"
+                                    class="action-btn toggle"
+                                    title="Desactivar"
+                                    onclick="confirmarToggle({{ usuario.pk }}, '{{ usuario.nombre_completo|default:usuario.email|escapejs }}', true)">
+                                <i class="bi bi-pause"></i>
+                            </button>
+                            {% else %}
+                            <form action="{% url 'usuarios:toggle_activo_usuario' usuario.pk %}"
+                                  method="post" class="toggle-form">
+                                {% csrf_token %}
+                                <button type="submit" class="action-btn toggle" title="Activar"
+                                        style="background:#f0fdf4;color:#16a34a;border:1.5px solid #bbf7d0;">
+                                    <i class="bi bi-play"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                            {% if not usuario.es_admin or usuario.pk != request.user.pk %}
+                            <a href="{% url 'usuarios:eliminar_usuario' usuario.pk %}"
+                               class="action-btn delete" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Paginación -->
+    {% if page_obj.has_other_pages %}
+    <div class="admin-pagination">
+        {% if page_obj.has_previous %}
+        <a class="admin-pagination-btn" href="?{% if rol_filtro %}rol={{ rol_filtro }}&{% endif %}page=1" title="Primera página">
+            <i class="bi bi-chevron-double-left"></i>
+        </a>
+        <a class="admin-pagination-btn" href="?{% if rol_filtro %}rol={{ rol_filtro }}&{% endif %}page={{ page_obj.previous_page_number }}" title="Página anterior">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        {% endif %}
+        <span class="admin-pagination-info">
+            {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+        </span>
+        {% if page_obj.has_next %}
+        <a class="admin-pagination-btn" href="?{% if rol_filtro %}rol={{ rol_filtro }}&{% endif %}page={{ page_obj.next_page_number }}" title="Página siguiente">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+        <a class="admin-pagination-btn" href="?{% if rol_filtro %}rol={{ rol_filtro }}&{% endif %}page={{ page_obj.paginator.num_pages }}" title="Última página">
+            <i class="bi bi-chevron-double-right"></i>
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="admin-card-body">
+        <div class="admin-empty-state">
+            <div class="admin-empty-icon">
+                <i class="bi bi-people"></i>
+            </div>
+            <h3 class="admin-empty-title">Sin usuarios</h3>
+            <p class="admin-empty-text">No hay usuarios con el filtro seleccionado.</p>
+            <a href="{% url 'usuarios:crear_usuario' %}" class="admin-btn admin-btn-primary">
+                <i class="bi bi-person-plus"></i> Crear Usuario
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal de confirmación para desactivar -->
+<div class="modal fade" id="modalToggle" tabindex="-1" aria-labelledby="modalToggleLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-desactivar">
+            <div class="modal-header">
+                <div class="modal-icon-wrapper warning">
+                    <i class="bi bi-pause-circle"></i>
+                </div>
+                <h5 class="modal-title" id="modalToggleLabel">Confirmar desactivación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-message">¿Estás seguro de que deseas desactivar a <strong id="usuario-nombre-modal"></strong>?</p>
+                <p class="modal-note">El usuario no podrá acceder al sistema mientras esté desactivado.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i> Cancelar
+                </button>
+                <form id="form-toggle" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-modal-confirm warning">
+                        <i class="bi bi-pause-circle"></i> Sí, desactivar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.rol-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-decoration: none;
+    border: 1.5px solid var(--admin-border);
+    color: var(--admin-text-light);
+    background: var(--admin-white);
+    transition: all 0.2s ease;
+}
+.rol-filter-btn:hover, .rol-filter-btn.active {
+    background: var(--admin-primary);
+    color: white;
+    border-color: var(--admin-primary);
+}
+.rol-filter-btn.catalogador.active { background:#2563eb; border-color:#2563eb; color:white; }
+.rol-filter-btn.revisor.active { background:#16a34a; border-color:#16a34a; color:white; }
+.rol-filter-btn.admin.active { background:#dc2626; border-color:#dc2626; color:white; }
+
+.rol-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.rol-badge.rol-catalogador { background:#dbeafe; color:#1d4ed8; }
+.rol-badge.rol-revisor     { background:#dcfce7; color:#15803d; }
+.rol-badge.rol-admin       { background:#fee2e2; color:#dc2626; }
+
+.avatar-catalogador { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+.avatar-revisor     { background: linear-gradient(135deg, #16a34a, #15803d); }
+.avatar-admin       { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+
+.modal-desactivar {
+    border: none; border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+    overflow: hidden;
+}
+.modal-desactivar .modal-header {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-bottom: none; padding: 1.25rem 1.5rem;
+    display: flex; align-items: center; gap: 0.75rem;
+}
+.modal-icon-wrapper { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.modal-icon-wrapper.warning { background:rgba(217,119,6,0.15); color:#d97706; }
+.modal-icon-wrapper i { font-size:1.5rem; }
+.modal-desactivar .modal-title { font-size:1.125rem; font-weight:600; color:#92400e; margin:0; flex:1; }
+.modal-desactivar .modal-body { padding:1.5rem; }
+.modal-message { font-size:0.9375rem; color:var(--admin-text); margin-bottom:0.75rem; }
+.modal-message strong { color:var(--admin-primary); }
+.modal-note { font-size:0.8125rem; color:var(--admin-text-light); margin:0; padding:0.75rem; background:var(--admin-bg); border-radius:6px; border-left:3px solid #d97706; }
+.modal-desactivar .modal-footer { background:var(--admin-bg); border-top:1px solid var(--admin-border-light); padding:1rem 1.5rem; display:flex; align-items:center; justify-content:flex-end; gap:0.75rem; }
+.btn-modal-cancel, .btn-modal-confirm { display:inline-flex; align-items:center; gap:0.5rem; padding:0.5rem 1rem; border-radius:8px; font-size:0.8125rem; font-weight:500; cursor:pointer; transition:all 0.2s ease; text-decoration:none; border:none; }
+.btn-modal-cancel { background:var(--admin-white); color:var(--admin-text); border:1.5px solid var(--admin-border); }
+.btn-modal-cancel:hover { background:var(--admin-bg); }
+.btn-modal-confirm.warning { background:linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color:white; }
+.btn-modal-confirm.warning:hover { background:linear-gradient(135deg, #d97706 0%, #b45309 100%); transform:translateY(-1px); box-shadow:0 4px 6px -1px rgba(217,119,6,0.3); }
+</style>
+
+<script>
+function confirmarToggle(usuarioId, usuarioNombre, desactivar) {
+    document.getElementById('usuario-nombre-modal').textContent = usuarioNombre;
+    const actionUrl = "{% url 'usuarios:toggle_activo_usuario' pk=0 %}".replace('0', usuarioId);
+    document.getElementById('form-toggle').action = actionUrl;
+    const modal = new bootstrap.Modal(document.getElementById('modalToggle'));
+    modal.show();
+}
+</script>
+{% endblock %}

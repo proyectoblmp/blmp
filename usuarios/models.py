@@ -26,10 +26,12 @@ class CustomUser(AbstractUser):
 
     # Tipos de roles
     ROL_CATALOGADOR = "catalogador"
+    ROL_REVISOR = "revisor"
     ROL_ADMIN = "admin"
 
     ROL_CHOICES = [
         (ROL_CATALOGADOR, "Catalogador"),
+        (ROL_REVISOR, "Revisor"),
         (ROL_ADMIN, "Administrador"),
     ]
 
@@ -81,6 +83,11 @@ class CustomUser(AbstractUser):
         default=True,
         help_text="Indica si el usuario puede acceder al sistema",
     )
+    debe_cambiar_password = models.BooleanField(
+        "Debe cambiar contraseña",
+        default=False,
+        help_text="Si está marcado, el usuario deberá cambiar su contraseña al iniciar sesión",
+    )
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 
@@ -108,6 +115,16 @@ class CustomUser(AbstractUser):
         return self.rol == self.ROL_CATALOGADOR
 
     @property
+    def es_revisor(self):
+        """Verifica si el usuario es revisor"""
+        return self.rol == self.ROL_REVISOR
+
+    @property
     def puede_catalogar(self):
-        """Verifica si el usuario puede catalogar (admin o catalogador)"""
+        """Verifica si el usuario puede catalogar (solo admin o catalogador, NO revisor)"""
         return self.es_admin or self.es_catalogador
+
+    @property
+    def puede_revisar(self):
+        """Verifica si el usuario puede revisar registros (admin o revisor)"""
+        return self.es_admin or self.es_revisor

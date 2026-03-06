@@ -8,9 +8,7 @@
 <div class="admin-stats">
     <div class="stat-card">
         <div class="stat-card-header">
-            <div class="stat-card-icon">
-                <i class="bi bi-people"></i>
-            </div>
+            <div class="stat-card-icon"><i class="bi bi-people"></i></div>
         </div>
         <div class="stat-card-value">{{ total_catalogadores }}</div>
         <div class="stat-card-label">Total Catalogadores</div>
@@ -18,22 +16,39 @@
 
     <div class="stat-card">
         <div class="stat-card-header">
-            <div class="stat-card-icon">
-                <i class="bi bi-person-check"></i>
-            </div>
+            <div class="stat-card-icon"><i class="bi bi-person-check"></i></div>
         </div>
         <div class="stat-card-value">{{ catalogadores_activos }}</div>
-        <div class="stat-card-label">Activos</div>
+        <div class="stat-card-label">Catalogadores Activos</div>
     </div>
 
     <div class="stat-card">
-        <div class="stat-card-label stat-card-actions-title">Acciones</div>
+        <div class="stat-card-header">
+            <div class="stat-card-icon"><i class="bi bi-eye"></i></div>
+        </div>
+        <div class="stat-card-value">{{ total_revisores }}</div>
+        <div class="stat-card-label">Total Revisores</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <div class="stat-card-icon"><i class="bi bi-person-lines-fill"></i></div>
+        </div>
+        <div class="stat-card-value">{{ revisores_activos }}</div>
+        <div class="stat-card-label">Revisores Activos</div>
+    </div>
+</div>
+
+<!-- Acciones rápidas -->
+<div class="admin-stats" style="margin-top:0;">
+    <div class="stat-card">
+        <div class="stat-card-label stat-card-actions-title">Acciones Rápidas</div>
         <div class="quick-actions">
-            <a href="{% url 'usuarios:crear_catalogador' %}" class="quick-action-btn primary">
-                <i class="bi bi-plus"></i> Nuevo
+            <a href="{% url 'usuarios:crear_usuario' %}" class="quick-action-btn primary">
+                <i class="bi bi-person-plus"></i> Nuevo Usuario
             </a>
-            <a href="{% url 'usuarios:lista_catalogadores' %}" class="quick-action-btn">
-                <i class="bi bi-list"></i> Ver todos
+            <a href="{% url 'usuarios:lista_usuarios' %}" class="quick-action-btn">
+                <i class="bi bi-list"></i> Ver Todos
             </a>
         </div>
     </div>
@@ -45,7 +60,8 @@
         Panel de Administración
     </div>
     <p class="admin-info-card-text">
-        Gestiona los catalogadores del sistema. Utiliza el menú lateral para navegar.
+        Gestiona todos los usuarios del sistema (catalogadores, revisores y administradores).
+        Utiliza el menú lateral para navegar.
     </p>
 </div>
 {% endblock %}

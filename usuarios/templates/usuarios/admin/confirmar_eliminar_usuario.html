@@ -1,0 +1,45 @@
+{% extends 'usuarios/admin/base_admin.html' %}
+
+{% block title %}Eliminar Usuario - Admin{% endblock %}
+{% block page_title %}Eliminar Usuario{% endblock %}
+
+{% block content %}
+<div style="max-width:560px;margin:0 auto;padding:1.5rem;">
+    <div style="background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+        <div style="background:linear-gradient(135deg,#fee2e2,#fecaca);padding:1.25rem 1.5rem;display:flex;align-items:center;gap:0.75rem;">
+            <div style="width:44px;height:44px;background:rgba(220,38,38,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="bi bi-trash3" style="font-size:1.35rem;color:#dc2626;"></i>
+            </div>
+            <div>
+                <h2 style="margin:0;font-size:1.125rem;font-weight:600;color:#991b1b;">Eliminar Usuario</h2>
+                <p style="margin:0;font-size:0.8125rem;color:#b91c1c;opacity:0.9;">Esta acción no se puede deshacer</p>
+            </div>
+        </div>
+        <div style="padding:1.5rem;">
+            <p style="font-size:0.9375rem;color:var(--admin-text);margin-bottom:0.75rem;">
+                ¿Estás seguro de que deseas eliminar al usuario
+                <strong style="color:var(--admin-primary);">{{ object.nombre_completo|default:object.email }}</strong>?
+            </p>
+            <div style="background:#fef2f2;border-left:3px solid #dc2626;border-radius:6px;padding:0.75rem 1rem;">
+                <p style="font-size:0.8125rem;color:#991b1b;margin:0;">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    Se eliminarán permanentemente todos los datos del usuario. Esta acción no se puede deshacer.
+                </p>
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:0.75rem;padding:1rem 1.5rem;background:var(--admin-bg);border-top:1px solid var(--admin-border-light);">
+            <a href="{% url 'usuarios:lista_usuarios' %}"
+               style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 1rem;border-radius:8px;font-size:0.8125rem;font-weight:500;text-decoration:none;background:white;color:var(--admin-text);border:1.5px solid var(--admin-border);">
+                <i class="bi bi-x-lg"></i> Cancelar
+            </a>
+            <form method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit"
+                        style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 1rem;border-radius:8px;font-size:0.8125rem;font-weight:500;background:linear-gradient(135deg,#dc2626,#b91c1c);color:white;border:none;cursor:pointer;">
+                    <i class="bi bi-trash3"></i> Eliminar
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -9,22 +9,22 @@ class CustomUserAdmin(UserAdmin):
     form = CustomUserChangeForm
     model = CustomUser
     ordering = ['email']
-    list_display = ['email', 'nombre_completo', 'rol', 'activo', 'is_staff', 'fecha_creacion']
-    list_filter = ['rol', 'activo', 'is_staff', 'is_superuser']
+    list_display = ['email', 'nombre_completo', 'rol', 'tipo_catalogador', 'activo', 'debe_cambiar_password', 'is_staff', 'fecha_creacion']
+    list_filter = ['rol', 'activo', 'debe_cambiar_password', 'is_staff', 'is_superuser']
     search_fields = ['email', 'nombre_completo']
-    
+
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Información Personal', {'fields': ('nombre_completo',)}),
-        ('Rol y Estado', {'fields': ('rol', 'activo')}),
+        ('Rol y Estado', {'fields': ('rol', 'tipo_catalogador', 'activo', 'debe_cambiar_password')}),
         ('Permisos Django', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Fechas', {'fields': ('last_login', 'date_joined')}),
     )
-    
+
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'nombre_completo', 'rol', 'password1', 'password2'),
+            'fields': ('email', 'nombre_completo', 'rol', 'tipo_catalogador', 'debe_cambiar_password', 'password1', 'password2'),
         }),
     )
 

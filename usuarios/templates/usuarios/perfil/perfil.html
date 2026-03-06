@@ -1,0 +1,117 @@
+{% extends base_template %}
+{% load static %}
+
+{% block title %}Mi Perfil{% endblock %}
+{% block page_title %}Mi Perfil{% endblock %}
+
+{% block content %}
+<div style="max-width:700px;margin:0 auto;padding:1.5rem;">
+
+    <!-- Tarjeta de perfil -->
+    <div style="background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);margin-bottom:1.5rem;">
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg,var(--admin-primary) 0%,var(--admin-primary-light) 100%);padding:1.5rem;display:flex;align-items:center;gap:1.25rem;">
+            <div style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:1.75rem;font-weight:700;color:white;flex-shrink:0;">
+                {{ user.email|slice:":1"|upper }}
+            </div>
+            <div>
+                <h2 style="margin:0;font-size:1.25rem;font-weight:700;color:white;">
+                    {{ user.nombre_completo|default:"Sin nombre" }}
+                </h2>
+                <p style="margin:0.25rem 0 0;font-size:0.875rem;color:rgba(255,255,255,0.85);">{{ user.email }}</p>
+                <span style="display:inline-flex;align-items:center;gap:0.35rem;margin-top:0.5rem;padding:0.2rem 0.65rem;border-radius:20px;font-size:0.75rem;font-weight:600;background:rgba(255,255,255,0.2);color:white;">
+                    {% if user.es_admin %}<i class="bi bi-shield-lock"></i> Administrador{% endif %}
+                    {% if user.es_revisor %}<i class="bi bi-eye"></i> Revisor{% endif %}
+                    {% if user.es_catalogador %}<i class="bi bi-pencil-square"></i> Catalogador{% endif %}
+                </span>
+            </div>
+        </div>
+
+        <!-- Formulario de edición -->
+        <form method="post" novalidate style="padding:1.5rem;">
+            {% csrf_token %}
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <div style="margin-bottom:1.25rem;">
+                <label for="id_nombre_completo" style="display:flex;align-items:center;gap:0.5rem;font-size:0.8125rem;font-weight:500;color:var(--admin-text);margin-bottom:0.375rem;">
+                    <i class="bi bi-person-badge"></i> Nombre Completo
+                </label>
+                <div style="position:relative;">
+                    <input type="text" name="nombre_completo" id="id_nombre_completo"
+                           value="{{ form.nombre_completo.value|default:'' }}"
+                           placeholder="Tu nombre completo"
+                           style="width:100%;padding:0.625rem 2.5rem 0.625rem 0.875rem;border:1.5px solid var(--admin-border);border-radius:8px;font-size:0.875rem;color:var(--admin-text);">
+                    <span style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);color:var(--admin-text-muted);font-size:0.875rem;">
+                        <i class="bi bi-person"></i>
+                    </span>
+                </div>
+                {% if form.nombre_completo.errors %}
+                <div style="display:flex;align-items:center;gap:0.375rem;font-size:0.75rem;color:var(--admin-danger);margin-top:0.25rem;">
+                    <i class="bi bi-exclamation-triangle-fill"></i> {{ form.nombre_completo.errors.0 }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Email (solo lectura) -->
+            <div style="margin-bottom:1.25rem;">
+                <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.8125rem;font-weight:500;color:var(--admin-text);margin-bottom:0.375rem;">
+                    <i class="bi bi-at"></i> Email (no editable)
+                </label>
+                <div style="position:relative;">
+                    <input type="email" value="{{ user.email }}" readonly
+                           style="width:100%;padding:0.625rem 2.5rem 0.625rem 0.875rem;border:1.5px solid var(--admin-border);border-radius:8px;font-size:0.875rem;color:var(--admin-text-light);background:#f8fafc;">
+                    <span style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);color:var(--admin-text-muted);font-size:0.875rem;">
+                        <i class="bi bi-lock"></i>
+                    </span>
+                </div>
+                <span style="font-size:0.7rem;color:var(--admin-text-light);">El email no se puede cambiar desde aquí. Contacta al administrador.</span>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:flex-end;gap:0.75rem;padding-top:1rem;border-top:1px solid var(--admin-border-light);">
+                <a href="{% url 'usuarios:cambiar_password' %}"
+                   style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 1rem;border-radius:8px;font-size:0.8125rem;font-weight:500;text-decoration:none;background:white;color:var(--admin-text);border:1.5px solid var(--admin-border);">
+                    <i class="bi bi-key"></i> Cambiar Contraseña
+                </a>
+                <button type="submit"
+                        style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 1rem;border-radius:8px;font-size:0.8125rem;font-weight:500;background:var(--admin-primary);color:white;border:none;cursor:pointer;">
+                    <i class="bi bi-check-lg"></i> Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Información adicional -->
+    <div style="background:white;border-radius:12px;padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+        <h3 style="font-size:0.875rem;font-weight:600;color:var(--admin-primary);text-transform:uppercase;letter-spacing:0.05em;margin:0 0 1rem;display:flex;align-items:center;gap:0.5rem;">
+            <i class="bi bi-info-circle"></i> Información de la Cuenta
+        </h3>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.75rem;">
+            <div>
+                <p style="font-size:0.75rem;color:var(--admin-text-light);margin:0;">Rol</p>
+                <p style="font-size:0.875rem;font-weight:500;color:var(--admin-text);margin:0;">{{ user.get_rol_display }}</p>
+            </div>
+            {% if user.es_catalogador %}
+            <div>
+                <p style="font-size:0.75rem;color:var(--admin-text-light);margin:0;">Tipo de Catalogador</p>
+                <p style="font-size:0.875rem;font-weight:500;color:var(--admin-text);margin:0;">{{ user.get_tipo_catalogador_display }}</p>
+            </div>
+            {% endif %}
+            <div>
+                <p style="font-size:0.75rem;color:var(--admin-text-light);margin:0;">Miembro desde</p>
+                <p style="font-size:0.875rem;font-weight:500;color:var(--admin-text);margin:0;">{{ user.fecha_creacion|date:"d \\de F, Y" }}</p>
+            </div>
+            <div>
+                <p style="font-size:0.75rem;color:var(--admin-text-light);margin:0;">Último acceso</p>
+                <p style="font-size:0.875rem;font-weight:500;color:var(--admin-text);margin:0;">{{ user.last_login|date:"d/m/Y H:i"|default:"—" }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
