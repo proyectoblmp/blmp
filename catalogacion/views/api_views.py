@@ -210,13 +210,17 @@ def obtener_obras_774(request):
         entries = []
         for enlace in obra.enlaces_unidades_774.select_related(
             'encabezamiento_principal', 'titulo'
-        ).all():
+        ).prefetch_related('numeros_control').all():
             entries.append({
                 "id": enlace.id,
                 "compositor_id": enlace.encabezamiento_principal.id if enlace.encabezamiento_principal else None,
                 "compositor_texto": str(enlace.encabezamiento_principal) if enlace.encabezamiento_principal else "",
                 "titulo_id": enlace.titulo.id if enlace.titulo else None,
                 "titulo_texto": str(enlace.titulo) if enlace.titulo else "",
+                "has_linked_work": enlace.numeros_control.filter(
+                    obra_relacionada__activo=True,
+                    obra_relacionada__num_control__isnull=False,
+                ).exists(),
             })
 
         return JsonResponse({

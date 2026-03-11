@@ -120,6 +120,8 @@ def sincronizar_774_al_guardar_773(sender, instance, created, **kwargs):
                 titulo=titulo_hijo,
             )
 
+        # Eliminar cualquier $w incorrecto para este enlace antes de fijar el correcto
+        enlace_774.numeros_control.exclude(obra_relacionada=obra_hijo).delete()
         # Asegurar que el $w apunta al hijo
         NumeroControl774.objects.get_or_create(
             enlace_774=enlace_774,
