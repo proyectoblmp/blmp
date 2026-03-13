@@ -210,7 +210,7 @@ def obtener_obras_774(request):
         entries = []
         for enlace in obra.enlaces_unidades_774.select_related(
             'encabezamiento_principal', 'titulo'
-        ).all():
+        ).prefetch_related('numeros_control').all():
             entries.append({
                 "id": enlace.id,
                 "compositor_id": enlace.encabezamiento_principal.id if enlace.encabezamiento_principal else None,

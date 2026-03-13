@@ -26,7 +26,9 @@ def obtener_ip_actual():
 
 
 @receiver(post_save, sender=ObraGeneral)
-def registrar_cambio_obra(sender, instance, created, **kwargs):
+def registrar_cambio_obra(sender, instance, created, raw=False, **kwargs):
+    if raw:
+        return
     """
     Registra automáticamente los cambios en ObraGeneral
     """

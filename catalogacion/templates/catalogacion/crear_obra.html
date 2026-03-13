@@ -779,6 +779,7 @@
             <div>
               <strong>${obra.titulo_texto || 'Sin título'}</strong>
               ${obra.compositor_texto ? `<br><small class="text-muted">${obra.compositor_texto}</small>` : ''}
+              ${obra.has_linked_work ? `<br><span class="badge bg-success mt-1">Ya catalogada</span>` : ''}
             </div>
             <i class="bi bi-chevron-right text-muted"></i>
           </div>
@@ -809,6 +810,12 @@
 
       const tituloPrincipal = document.getElementById("id_titulo_principal");
       if (tituloPrincipal && obra774.titulo_texto) tituloPrincipal.value = obra774.titulo_texto;
+
+      // 240 $a – Pre-rellenar título uniforme (FK) para que la señal 773↔774 funcione en el primer guardado
+      const titulo240Hidden = document.getElementById("id_titulo_240");
+      const titulo240Texto = document.getElementById("id_titulo_240_texto");
+      if (titulo240Hidden && obra774.titulo_id) titulo240Hidden.value = obra774.titulo_id;
+      if (titulo240Texto && obra774.titulo_texto) titulo240Texto.value = obra774.titulo_texto;
 
       const row773 = targetContainer.closest('.formset-row');
       if (row773) {

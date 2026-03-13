@@ -16,7 +16,9 @@ from .autoridades import AutoridadTituloUniforme
 
 @receiver(post_save, sender=CodigoPaisEntidad)
 @receiver(post_delete, sender=CodigoPaisEntidad)
-def actualizar_signatura_por_cambio_pais(sender, instance, **kwargs):
+def actualizar_signatura_por_cambio_pais(sender, instance, raw=False, **kwargs):
+    if raw:
+        return
     """
     Actualiza automáticamente la signatura de la obra cuando se cambia un código de país.
     
@@ -83,7 +85,9 @@ def actualizar_signatura_por_cambio_pais(sender, instance, **kwargs):
 # ─────────────────────────────────────────────────────────────────────────────
 
 @receiver(post_save, sender=NumeroControl773)
-def sincronizar_774_al_guardar_773(sender, instance, created, **kwargs):
+def sincronizar_774_al_guardar_773(sender, instance, created, raw=False, **kwargs):
+    if raw:
+        return
     """
     Al guardar un 773 $w (obra hijo → colección padre), busca en la colección
     un 774 cuyo $t coincide con el título de la obra hijo y le asigna el $w.
