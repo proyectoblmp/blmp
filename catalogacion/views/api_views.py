@@ -217,6 +217,10 @@ def obtener_obras_774(request):
                 "compositor_texto": str(enlace.encabezamiento_principal) if enlace.encabezamiento_principal else "",
                 "titulo_id": enlace.titulo.id if enlace.titulo else None,
                 "titulo_texto": str(enlace.titulo) if enlace.titulo else "",
+                "has_linked_work": enlace.numeros_control.filter(
+                    obra_relacionada__activo=True,
+                    obra_relacionada__num_control__isnull=False,
+                ).exists(),
             })
 
         return JsonResponse({
@@ -232,3 +236,36 @@ def obtener_obras_774(request):
 
     except ObraGeneral.DoesNotExist:
         return JsonResponse({"error": "Obra no encontrada"}, status=404)
+
+
+@require_GET
+def obtener_bio_compositor(request):
+    """
+    Retorna datos biográficos (545) de otras obras del compositor dado.
+    Se usa para auto-llenar 545 al seleccionar compositor en 100 $a.
+    """
+    from catalogacion.models import DatosBiograficos545
+    compositor_id = request.GET.get('compositor_id', '').strip()
+    if not compositor_id or not compositor_id.isdigit():
+        return JsonResponse({'success': False, 'datos': None})
+
+    bio = (
+        DatosBiograficos545.objects
+        .filter(obra__compositor_id=int(compositor_id))
+        .exclude(texto_biografico__isnull=True)
+        .exclude(texto_biografico='')
+        .select_related('obra')
+        .order_by('-obra__id')
+        .first()
+    )
+
+    if not bio:
+        return JsonResponse({'success': False, 'datos': None})
+
+    return JsonResponse({
+        'success': True,
+        'datos': {
+            'texto_biografico': bio.texto_biografico,
+            'uri': bio.uri or '',
+        }
+    })

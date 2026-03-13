@@ -59,6 +59,7 @@
                 coordenadasInput.value =
                     item.raw?.coordenadas_biograficas || "";
             }
+            if (item.id) llenarBio545(item.id);
         },
         onCreate: (query, elements) => {
             elements.input.value = query;
@@ -102,6 +103,25 @@
             .catch((error) =>
                 console.error("Error al precargar compositor", error)
             );
+    }
+
+    function llenarBio545(compositorId) {
+        const bio545 = document.querySelector(
+            '[data-formset-prefix="biograficos_545"] textarea[name*="texto_biografico"]'
+        );
+        const uri545 = document.querySelector(
+            '[data-formset-prefix="biograficos_545"] input[name*="uri"]'
+        );
+        if (!bio545 || bio545.value.trim()) return;
+
+        fetch(`/catalogacion/api/compositor/bio-545/?compositor_id=${compositorId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success || !data.datos) return;
+                bio545.value = data.datos.texto_biografico || '';
+                if (uri545 && data.datos.uri) uri545.value = data.datos.uri;
+            })
+            .catch(err => console.warn('[545 auto-fill]', err));
     }
 
     function escapeHtml(text) {

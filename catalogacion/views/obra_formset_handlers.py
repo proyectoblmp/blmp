@@ -340,6 +340,9 @@ def save_terminos_asociados_700(request_post, formset):
         if not form.instance.pk:
             continue  # solo procesar padres ya guardados
 
+        if getattr(form, "cleaned_data", None) and form.cleaned_data.get("DELETE", False):
+            continue  # el padre será eliminado, sus terminos se van por CASCADE
+
         form.instance.terminos_asociados.all().delete()
 
         if index in valores:
