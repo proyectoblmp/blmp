@@ -91,13 +91,13 @@ FORMSET 773 – Documento Fuente (R)
                             <input type="text"
                                 class="form-control numero-w-input"
                                 placeholder="Seleccione una obra"
-                                value="{% if form.instance.pk %}{% for nc in form.instance.numeros_control.all %}{% if nc.obra_relacionada %}{{ nc.obra_relacionada.num_control }}{% endif %}{% endfor %}{% endif %}"
+                                value="{% if form.instance.pk %}{% with nc=form.instance.numeros_control.first %}{% if nc.obra_relacionada %}{{ nc.obra_relacionada.num_control }}{% endif %}{% endwith %}{% endif %}"
                                 readonly>
 
                             <!-- Botón lupa -->
                             <button type="button"
                                     class="btn btn-outline-secondary btn-buscar-obra"
-                                    data-enlace-id="{{ form.instance.pk|default:'__prefix__' }}"
+                                    data-enlace-id="{% if form.instance.pk %}{{ form.instance.pk }}{% else %}{{ forloop.counter0 }}{% endif %}"
                                     data-campo="773"
                                     title="Buscar obra">
                                 <i class="bi bi-search"></i>
@@ -106,8 +106,8 @@ FORMSET 773 – Documento Fuente (R)
                             <!-- Hidden con ID de obra relacionada -->
                             <input type="hidden"
                                 class="obra-relacionada-id-input"
-                                name="w_773_{{ form.instance.pk|default:'__prefix__' }}"
-                                value="{% if form.instance.pk %}{% for nc in form.instance.numeros_control.all %}{% if nc.obra_relacionada %}{{ nc.obra_relacionada.id }}{% endif %}{% endfor %}{% endif %}">
+                                name="w_773_{% if form.instance.pk %}{{ form.instance.pk }}{% else %}{{ forloop.counter0 }}{% endif %}"
+                                value="{% if form.instance.pk %}{% with nc=form.instance.numeros_control.first %}{% if nc.obra_relacionada %}{{ nc.obra_relacionada.id }}{% endif %}{% endwith %}{% endif %}">
                         </div>
                     </div>
 

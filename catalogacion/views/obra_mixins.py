@@ -435,6 +435,10 @@ class ObraFormsetMixin:
             "entidades_relacionadas_710": [
                 "_save_funciones_institucionales_710",
             ],
+            # Relaciones 7XX – NumeroControl ($w)
+            "enlaces_documento_fuente_773": ["_save_numeros_control_773"],
+            "enlaces_unidad_constituyente_774": ["_save_numeros_control_774"],
+            "otras_relaciones_787": ["_save_numeros_control_787"],
         }
 
         for key, formset in formsets.items():
