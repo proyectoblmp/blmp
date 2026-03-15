@@ -241,31 +241,26 @@ def obtener_obras_774(request):
 @require_GET
 def obtener_bio_compositor(request):
     """
-    Retorna datos biográficos (545) de otras obras del compositor dado.
+    Retorna datos biográficos (545) desde AutoridadPersona.
     Se usa para auto-llenar 545 al seleccionar compositor en 100 $a.
     """
-    from catalogacion.models import DatosBiograficos545
+    from catalogacion.models.autoridades import AutoridadPersona
     compositor_id = request.GET.get('compositor_id', '').strip()
     if not compositor_id or not compositor_id.isdigit():
         return JsonResponse({'success': False, 'datos': None})
 
-    bio = (
-        DatosBiograficos545.objects
-        .filter(obra__compositor_id=int(compositor_id))
-        .exclude(texto_biografico__isnull=True)
-        .exclude(texto_biografico='')
-        .select_related('obra')
-        .order_by('-obra__id')
-        .first()
-    )
+    try:
+        persona = AutoridadPersona.objects.get(id=int(compositor_id))
+    except AutoridadPersona.DoesNotExist:
+        return JsonResponse({'success': False, 'datos': None})
 
-    if not bio:
+    if not persona.nota_biografica:
         return JsonResponse({'success': False, 'datos': None})
 
     return JsonResponse({
         'success': True,
         'datos': {
-            'texto_biografico': bio.texto_biografico,
-            'uri': bio.uri or '',
+            'texto_biografico': persona.nota_biografica,
+            'uri': persona.uri_nota_biografica or '',
         }
     })

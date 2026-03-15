@@ -28,7 +28,7 @@
             {% endif %}
             <div class="row g-3">
                 {% for field in form %}
-                <div class="col-md-6">
+                <div class="{% if field.name in 'nota_biografica,uri_nota_biografica' %}col-12{% else %}col-md-6{% endif %}">
                     <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
                     {{ field }}
                     {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}

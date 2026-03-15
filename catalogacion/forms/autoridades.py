@@ -12,7 +12,7 @@ from catalogacion.models import (
 class AutoridadPersonaForm(forms.ModelForm):
     class Meta:
         model = AutoridadPersona
-        fields = ["apellidos_nombres", "coordenadas_biograficas"]
+        fields = ["apellidos_nombres", "coordenadas_biograficas", "nota_biografica", "uri_nota_biografica"]
         widgets = {
             "apellidos_nombres": forms.TextInput(
                 attrs={
@@ -26,10 +26,25 @@ class AutoridadPersonaForm(forms.ModelForm):
                     "placeholder": "Años de vida o actividad (ej: 1685-1750)",
                 }
             ),
+            "nota_biografica": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 4,
+                    "placeholder": "Ej.: Compositor latinoamericano nacido en...",
+                }
+            ),
+            "uri_nota_biografica": forms.URLInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "https://es.wikipedia.org/wiki/...",
+                }
+            ),
         }
         labels = {
             "apellidos_nombres": "Apellidos, Nombres",
             "coordenadas_biograficas": "Coordenadas biográficas",
+            "nota_biografica": "545 $a – Nota biográfica",
+            "uri_nota_biografica": "545 $u – URL de referencia",
         }
 
 
