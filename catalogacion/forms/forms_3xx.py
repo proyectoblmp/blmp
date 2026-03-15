@@ -26,9 +26,9 @@ class MedioInterpretacion382Form(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Prellenar $b con 'piano' para nuevas instancias (sin pk guardado)
+        # Prellenar $b con '---------' para nuevas instancias (sin pk guardado)
         if not self.instance.pk:
-            self.fields['solista'].initial = 'piano'
+            self.fields['solista'].initial = '---------'
 
 
 class MedioInterpretacion382_aForm(forms.ModelForm):

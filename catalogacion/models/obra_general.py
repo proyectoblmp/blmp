@@ -312,10 +312,10 @@ class ObraGeneral(SoftDeleteMixin, models.Model):
     arreglo_240 = models.CharField(
         max_length=10,
         choices=[("arreglo", "Arreglo")],
-        default="arreglo",
+        default="",
         blank=True,
         null=True,
-        help_text="240 $o — Arreglo (predeterminado: Arreglo)",
+        help_text="240 $o — Arreglo",
     )
 
     tonalidad_240 = models.CharField(
