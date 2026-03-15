@@ -249,8 +249,16 @@
 
     // 6. Actualizar el primer elemento del canvas (la clave)
     if (CanvasIncipit.drawIncipitElements.length === 0) {
-      alert("⚠️ El canvas no está inicializado correctamente.");
-      return;
+      // El canvas estaba oculto (pestaña con display:none) cuando DOMContentLoaded disparó.
+      // Reintentar la inicialización ahora que el usuario interactuó con él.
+      var canvasEl = document.getElementById("incipit_canvas_0");
+      if (canvasEl) {
+        CanvasIncipit.initializeCanvas("incipit_canvas_0", "add", "");
+      }
+      if (CanvasIncipit.drawIncipitElements.length === 0) {
+        console.error("[updateCanvasHeaderFromInputs] No se pudo inicializar el canvas.");
+        return;
+      }
     }
 
     const clefElement = CanvasIncipit.drawIncipitElements[0];

@@ -540,6 +540,15 @@
     tabElement.classList.add('active');
     btnElement.classList.add('active');
 
+    // Si se navega a la pestaña de datos musicales, re-inicializar el canvas del incipit
+    // (puede estar vacío si al cargar la página estaba oculto y DOMContentLoaded falló silenciosamente)
+    if (tabId === 'tab-datos-musicales') {
+      var canvasIncipit = document.getElementById('incipit_canvas_0');
+      if (canvasIncipit && typeof CanvasIncipit !== 'undefined' && CanvasIncipit.drawIncipitElements.length === 0) {
+        CanvasIncipit.initializeCanvas('incipit_canvas_0', 'add', '');
+      }
+    }
+
     currentTabIndex = index;
 
     const progress = ((index + 1) / tabs.length) * 100;
