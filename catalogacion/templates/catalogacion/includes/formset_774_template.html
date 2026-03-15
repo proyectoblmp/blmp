@@ -72,17 +72,19 @@ Estilo compatible con 856 / 700
                         {# Display: muestra el num_control de las obras hijo vinculadas (solo lectura) #}
                         <input type="text"
                                class="form-control campo-774-w"
-                               value="{% if form.instance.pk %}{% for nc in form.instance.numeros_control.all %}{{ nc.obra_relacionada.num_control }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}"
+                               value="{% if form.instance.pk %}{% with nc=form.instance.numeros_control.first %}{% if nc.obra_relacionada %}{{ nc.obra_relacionada.num_control }}{% endif %}{% endwith %}{% endif %}"
                                placeholder="(se completa al crear la obra hijo)"
                                readonly
                                style="background-color: #f8f9fa; color: #6c757d;">
                         {# Hidden: preserva el vínculo al guardar el formulario #}
                         {% if form.instance.pk %}
-                            {% for nc in form.instance.numeros_control.all %}
-                                <input type="hidden"
-                                       name="w_774_{{ form.instance.pk }}"
-                                       value="{{ nc.obra_relacionada.id }}">
-                            {% endfor %}
+                            {% with nc=form.instance.numeros_control.first %}
+                                {% if nc.obra_relacionada %}
+                                    <input type="hidden"
+                                           name="w_774_{% if form.instance.pk %}{{ form.instance.pk }}{% else %}{{ forloop.counter0 }}{% endif %}"
+                                           value="{{ nc.obra_relacionada.id }}">
+                                {% endif %}
+                            {% endwith %}
                         {% endif %}
                     </div>
 

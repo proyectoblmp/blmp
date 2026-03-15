@@ -382,7 +382,7 @@ class ObraGeneralForm(forms.ModelForm):
             if not self.initial.get("medio_interpretacion_240"):
                 self.initial["medio_interpretacion_240"] = "piano"
             if not self.initial.get("arreglo_240"):
-                self.initial["arreglo_240"] = "arreglo"
+                self.initial["arreglo_240"] = ""
 
         else:
             # Rellenar campos de texto al editar una obra existente

@@ -152,6 +152,10 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Límite de parámetros POST — necesario para obras con muchos campos repetibles
+# (ej: campo 774 con formset anidado genera ~24 campos/fila; 80 filas = ~1,920 campos)
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10_000
+
 # Configuración de logging para desarrollo
 LOGGING = {
     "version": 1,

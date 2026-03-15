@@ -149,34 +149,8 @@
 
             <!-- ==================== NAVEGACIÓN DE PESTAÑAS (NUEVA UI) ==================== -->
             <div class="tabs-navigation">
-                {% if tipo_obra == 'coleccion_manuscrita' or tipo_obra == 'coleccion_impresa' %}
-                {# Colecciones: Nombres y títulos primero, Relaciones al final #}
-                <button type="button" class="tab-button active" data-tab="tab-personas" data-tab-index="0">
-                    <i class="bi bi-person-vcard"></i> Nombres y títulos
-                </button>
-                <button type="button" class="tab-button" data-tab="tab-produccion" data-tab-index="1">
-                    <i class="bi bi-building-gear"></i> Producción/edición
-                </button>
-                <button type="button" class="tab-button" data-tab="tab-datos-musicales" data-tab-index="2">
-                    <i class="bi bi-music-note-beamed"></i> Datos musicales
-                </button>
-                <button type="button" class="tab-button" data-tab="tab-materias" data-tab-index="3">
-                    <i class="bi bi-tags"></i> Materias/serie
-                </button>
-                <button type="button" class="tab-button" data-tab="tab-notas" data-tab-index="4">
-                    <i class="bi bi-journal-text"></i> Notas
-                </button>
-                <button type="button" class="tab-button" data-tab="tab-relaciones" data-tab-index="5">
-                    <i class="bi bi-diagram-3"></i> Relaciones
-                </button>
-                <button type="button" class="tab-button" data-tab="tab-existencias" data-tab-index="6">
-                    <i class="bi bi-sticky-fill"></i> Existencias
-                </button>
-                <button type="button" class="tab-button" data-tab="tab-admin" data-tab-index="7">
-                    <i class="bi bi-exclamation-circle"></i> Admin
-                </button>
-                {% else %}
-                {# Obras individuales: Relaciones primero #}
+                {% if tipo_obra == 'obra_en_coleccion_manuscrita' or tipo_obra == 'obra_en_coleccion_impresa' %}
+                {# Obras en colección: Relaciones primero (índice 0) para enlazar con su colección #}
                 <button type="button" class="tab-button active" data-tab="tab-relaciones" data-tab-index="0">
                     <i class="bi bi-diagram-3"></i> Relaciones
                 </button>
@@ -201,22 +175,48 @@
                 <button type="button" class="tab-button" data-tab="tab-admin" data-tab-index="7">
                     <i class="bi bi-exclamation-circle"></i> Admin
                 </button>
+                {% else %}
+                {# Colecciones y obras individuales: Nombres y títulos primero, Relaciones en posición 6 #}
+                <button type="button" class="tab-button active" data-tab="tab-personas" data-tab-index="0">
+                    <i class="bi bi-person-vcard"></i> Nombres y títulos
+                </button>
+                <button type="button" class="tab-button" data-tab="tab-produccion" data-tab-index="1">
+                    <i class="bi bi-building-gear"></i> Producción/edición
+                </button>
+                <button type="button" class="tab-button" data-tab="tab-datos-musicales" data-tab-index="2">
+                    <i class="bi bi-music-note-beamed"></i> Datos musicales
+                </button>
+                <button type="button" class="tab-button" data-tab="tab-materias" data-tab-index="3">
+                    <i class="bi bi-tags"></i> Materias/serie
+                </button>
+                <button type="button" class="tab-button" data-tab="tab-notas" data-tab-index="4">
+                    <i class="bi bi-journal-text"></i> Notas
+                </button>
+                <button type="button" class="tab-button" data-tab="tab-relaciones" data-tab-index="5">
+                    <i class="bi bi-diagram-3"></i> Relaciones
+                </button>
+                <button type="button" class="tab-button" data-tab="tab-existencias" data-tab-index="6">
+                    <i class="bi bi-sticky-fill"></i> Existencias
+                </button>
+                <button type="button" class="tab-button" data-tab="tab-admin" data-tab-index="7">
+                    <i class="bi bi-exclamation-circle"></i> Admin
+                </button>
                 {% endif %}
             </div>
 
 
             <div class="tabs-content">
 
-                <!-- 1️⃣ RELACIONES (activo para obras; índice 5 para colecciones) -->
-                <div id="tab-relaciones" class="tab-content{% if tipo_obra != 'coleccion_manuscrita' and tipo_obra != 'coleccion_impresa' %} active{% endif %}">
+                <!-- 1️⃣ RELACIONES (índice 0 para obras en colección; índice 5 para colecciones e individuales) -->
+                <div id="tab-relaciones" class="tab-content{% if tipo_obra == 'obra_en_coleccion_manuscrita' or tipo_obra == 'obra_en_coleccion_impresa' %} active{% endif %}">
                     {% include 'catalogacion/secciones/relaciones.html' %}
                     <div class="tab-navigation-buttons">
-                        {% if tipo_obra == 'coleccion_manuscrita' or tipo_obra == 'coleccion_impresa' %}
+                        {% if tipo_obra == 'obra_en_coleccion_manuscrita' or tipo_obra == 'obra_en_coleccion_impresa' %}
+                        <div></div>
+                        {% else %}
                         <button type="button" class="btn btn-outline-secondary" onclick="prevTab()">
                             <i class="bi bi-arrow-left"></i> Anterior
                         </button>
-                        {% else %}
-                        <div></div>
                         {% endif %}
                         <button type="button" class="btn btn-primary" onclick="nextTab()">
                             Siguiente <i class="bi bi-arrow-right"></i>
@@ -224,16 +224,16 @@
                     </div>
                 </div>
 
-                <!-- 2️⃣ NOMBRES Y TÍTULOS (activo para colecciones; índice 1 para obras) -->
-                <div id="tab-personas" class="tab-content{% if tipo_obra == 'coleccion_manuscrita' or tipo_obra == 'coleccion_impresa' %} active{% endif %}">
+                <!-- 2️⃣ NOMBRES Y TÍTULOS (activo para colecciones e individuales; índice 1 para obras en colección) -->
+                <div id="tab-personas" class="tab-content{% if tipo_obra != 'obra_en_coleccion_manuscrita' and tipo_obra != 'obra_en_coleccion_impresa' %} active{% endif %}">
                     {% include 'catalogacion/secciones/personas_titulos.html' %}
                     <div class="tab-navigation-buttons">
-                        {% if tipo_obra == 'coleccion_manuscrita' or tipo_obra == 'coleccion_impresa' %}
-                        <div></div>
-                        {% else %}
+                        {% if tipo_obra == 'obra_en_coleccion_manuscrita' or tipo_obra == 'obra_en_coleccion_impresa' %}
                         <button type="button" class="btn btn-outline-secondary" onclick="prevTab()">
                             <i class="bi bi-arrow-left"></i> Anterior
                         </button>
+                        {% else %}
+                        <div></div>
                         {% endif %}
                         <button type="button" class="btn btn-primary" onclick="nextTab()">
                             Siguiente <i class="bi bi-arrow-right"></i>
@@ -500,22 +500,22 @@
   }
 
   // ==================== SISTEMA DE PESTAÑAS (NUEVA UI) ====================
-  const tabs = {% if tipo_obra == 'coleccion_manuscrita' or tipo_obra == 'coleccion_impresa' %}[
+  const tabs = {% if tipo_obra == 'obra_en_coleccion_manuscrita' or tipo_obra == 'obra_en_coleccion_impresa' %}[
+    'tab-relaciones',
     'tab-personas',
     'tab-produccion',
     'tab-datos-musicales',
     'tab-materias',
     'tab-notas',
-    'tab-relaciones',
     'tab-existencias',
     'tab-admin'
   ]{% else %}[
-    'tab-relaciones',
     'tab-personas',
     'tab-produccion',
     'tab-datos-musicales',
     'tab-materias',
     'tab-notas',
+    'tab-relaciones',
     'tab-existencias',
     'tab-admin'
   ]{% endif %};
@@ -539,6 +539,15 @@
 
     tabElement.classList.add('active');
     btnElement.classList.add('active');
+
+    // Si se navega a la pestaña de datos musicales, re-inicializar el canvas del incipit
+    // (puede estar vacío si al cargar la página estaba oculto y DOMContentLoaded falló silenciosamente)
+    if (tabId === 'tab-datos-musicales') {
+      var canvasIncipit = document.getElementById('incipit_canvas_0');
+      if (canvasIncipit && typeof CanvasIncipit !== 'undefined' && CanvasIncipit.drawIncipitElements.length === 0) {
+        CanvasIncipit.initializeCanvas('incipit_canvas_0', 'add', '');
+      }
+    }
 
     currentTabIndex = index;
 
@@ -779,6 +788,7 @@
             <div>
               <strong>${obra.titulo_texto || 'Sin título'}</strong>
               ${obra.compositor_texto ? `<br><small class="text-muted">${obra.compositor_texto}</small>` : ''}
+              ${obra.has_linked_work ? `<br><span class="badge bg-success mt-1">Ya catalogada</span>` : ''}
             </div>
             <i class="bi bi-chevron-right text-muted"></i>
           </div>
@@ -809,6 +819,12 @@
 
       const tituloPrincipal = document.getElementById("id_titulo_principal");
       if (tituloPrincipal && obra774.titulo_texto) tituloPrincipal.value = obra774.titulo_texto;
+
+      // 240 $a – Pre-rellenar título uniforme (FK) para que la señal 773↔774 funcione en el primer guardado
+      const titulo240Hidden = document.getElementById("id_titulo_240");
+      const titulo240Texto = document.getElementById("id_titulo_240_texto");
+      if (titulo240Hidden && obra774.titulo_id) titulo240Hidden.value = obra774.titulo_id;
+      if (titulo240Texto && obra774.titulo_texto) titulo240Texto.value = obra774.titulo_texto;
 
       const row773 = targetContainer.closest('.formset-row');
       if (row773) {

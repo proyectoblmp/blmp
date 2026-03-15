@@ -340,6 +340,9 @@ def save_terminos_asociados_700(request_post, formset):
         if not form.instance.pk:
             continue  # solo procesar padres ya guardados
 
+        if getattr(form, "cleaned_data", None) and form.cleaned_data.get("DELETE", False):
+            continue  # el padre será eliminado, sus terminos se van por CASCADE
+
         form.instance.terminos_asociados.all().delete()
 
         if index in valores:
@@ -442,6 +445,143 @@ def save_funciones_institucionales_710(request_post, formset):
 
 
 # ================================================================
+# HANDLERS 773 / 774 / 787 – NumeroControl ($w)
+# ================================================================
+
+
+def _resolve_w_key(form, request_post, campo):
+    """
+    Determina la clave POST correcta para el campo $w de 773/774/787.
+
+    Estrategia:
+    - Si el form tenía pk antes de guardarse (campo-N-id en POST no vacío)
+      → usar w_{campo}_{pk_original}  (nombre establecido en template para filas existentes)
+    - Si era un form nuevo (campo-N-id vacío)
+      → usar w_{campo}_{form_index}   (nombre que FormsetManager asigna al clonar __prefix__)
+    """
+    raw_pk = request_post.get(f"{form.prefix}-id", "").strip()
+    if raw_pk and raw_pk.isdigit():
+        return f"w_{campo}_{raw_pk}"
+    # Form nuevo: el índice está al final del prefix (ej: "enlaces_773-2" → "2")
+    form_index = form.prefix.split("-")[-1]
+    return f"w_{campo}_{form_index}"
+
+
+def save_numeros_control_773(request_post, formset):
+    """Guarda NumeroControl773 ($w) después de guardar los padres 773."""
+    from catalogacion.models import NumeroControl773, ObraGeneral
+
+    for form in formset:
+        if not form.instance.pk:
+            continue
+        if getattr(form, "cleaned_data", None) and form.cleaned_data.get(
+            "DELETE", False
+        ):
+            continue
+
+        post_key = _resolve_w_key(form, request_post, "773")
+        obra_id = request_post.get(post_key, "").strip()
+        if not obra_id:
+            continue
+
+        try:
+            obra_id_int = int(obra_id)
+        except (ValueError, TypeError):
+            continue
+
+        if not ObraGeneral.objects.filter(pk=obra_id_int).exists():
+            logger.warning(
+                f"[773 $w] obra_id={obra_id_int} no existe — $w ignorado"
+            )
+            continue
+
+        form.instance.numeros_control.all().delete()
+        NumeroControl773.objects.create(
+            enlace_773=form.instance,
+            obra_relacionada_id=obra_id_int,
+        )
+        logger.info(
+            f"[773 $w] Guardado: enlace_pk={form.instance.pk}, obra_id={obra_id_int}"
+        )
+
+
+def save_numeros_control_774(request_post, formset):
+    """Guarda NumeroControl774 ($w) después de guardar los padres 774."""
+    from catalogacion.models import NumeroControl774, ObraGeneral
+
+    for form in formset:
+        if not form.instance.pk:
+            continue
+        if getattr(form, "cleaned_data", None) and form.cleaned_data.get(
+            "DELETE", False
+        ):
+            continue
+
+        post_key = _resolve_w_key(form, request_post, "774")
+        obra_id = request_post.get(post_key, "").strip()
+        if not obra_id:
+            continue
+
+        try:
+            obra_id_int = int(obra_id)
+        except (ValueError, TypeError):
+            continue
+
+        if not ObraGeneral.objects.filter(pk=obra_id_int).exists():
+            logger.warning(
+                f"[774 $w] obra_id={obra_id_int} no existe — $w ignorado"
+            )
+            continue
+
+        form.instance.numeros_control.all().delete()
+        NumeroControl774.objects.create(
+            enlace_774=form.instance,
+            obra_relacionada_id=obra_id_int,
+        )
+        logger.info(
+            f"[774 $w] Guardado: enlace_pk={form.instance.pk}, obra_id={obra_id_int}"
+        )
+
+
+def save_numeros_control_787(request_post, formset):
+    """Guarda NumeroControl787 ($w) después de guardar los padres 787."""
+    from catalogacion.models import NumeroControl787, ObraGeneral
+
+    for form in formset:
+        if not form.instance.pk:
+            continue
+        if getattr(form, "cleaned_data", None) and form.cleaned_data.get(
+            "DELETE", False
+        ):
+            continue
+
+        post_key = _resolve_w_key(form, request_post, "787")
+        obra_id = request_post.get(post_key, "").strip()
+        if not obra_id:
+            continue
+
+        try:
+            obra_id_int = int(obra_id)
+        except (ValueError, TypeError):
+            continue
+
+        if not ObraGeneral.objects.filter(pk=obra_id_int).exists():
+            logger.warning(
+                f"[787 $w] obra_id={obra_id_int} no existe — $w ignorado"
+            )
+            continue
+
+        form.instance.numeros_control.all().delete()
+        NumeroControl787.objects.create(
+            enlace_787=form.instance,
+            obra_relacionada_id=obra_id_int,
+        )
+        logger.info(
+            f"[787 $w] Guardado: enlace_pk={form.instance.pk}, obra_id={obra_id_int}"
+        )
+
+
+# ================================================================
 # MAPEO DE HANDLERS REGISTRADOS
 # ================================================================
 
@@ -461,4 +601,8 @@ SUBCAMPO_HANDLERS = {
     "_save_terminos_asociados_700": save_terminos_asociados_700,
     "_save_funciones_700": save_funciones_700,
     "_save_funciones_institucionales_710": save_funciones_institucionales_710,
+    # Relaciones 7XX – NumeroControl ($w)
+    "_save_numeros_control_773": save_numeros_control_773,
+    "_save_numeros_control_774": save_numeros_control_774,
+    "_save_numeros_control_787": save_numeros_control_787,
 }

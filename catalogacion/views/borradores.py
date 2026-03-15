@@ -59,14 +59,41 @@ def guardar_borrador_ajax(request):
                     {"success": False, "error": "Borrador no encontrado"}, status=404
                 )
         else:
-            # Crear nuevo borrador
-            borrador = BorradorObra.objects.create(
-                tipo_obra=tipo_obra or "edicion",
-                obra_objetivo_id=obra_objetivo_id,
-                datos_formulario=datos_formulario,
-                pestana_actual=pestana_actual,
-                usuario=request.user if request.user.is_authenticated else None,
-            )
+            # Si no hay borrador_id o no existe, buscar borrador activo existente
+            # antes de crear uno nuevo (evita duplicados por race conditions del JS)
+            usuario = request.user if request.user.is_authenticated else None
+
+            if obra_objetivo_id:
+                qs = BorradorObra.objects.filter(
+                    estado="activo",
+                    obra_objetivo_id=obra_objetivo_id,
+                )
+            else:
+                qs = BorradorObra.objects.filter(
+                    estado="activo",
+                    tipo_obra=tipo_obra,
+                    obra_objetivo__isnull=True,
+                )
+                if usuario:
+                    qs = qs.filter(usuario=usuario)
+
+            borrador_existente = qs.order_by("-fecha_modificacion").first()
+
+            if borrador_existente:
+                borrador_existente.datos_formulario = datos_formulario
+                borrador_existente.pestana_actual = pestana_actual
+                if tipo_obra:
+                    borrador_existente.tipo_obra = tipo_obra
+                borrador_existente.save()
+                borrador = borrador_existente
+            else:
+                borrador = BorradorObra.objects.create(
+                    tipo_obra=tipo_obra or "edicion",
+                    obra_objetivo_id=obra_objetivo_id,
+                    datos_formulario=datos_formulario,
+                    pestana_actual=pestana_actual,
+                    usuario=usuario,
+                )
             mensaje = "Borrador guardado exitosamente"
 
         return JsonResponse(
@@ -292,7 +319,7 @@ def listar_borradores_ajax(request):
                     "fecha_modificacion": borrador.fecha_modificacion.isoformat(),
                     "fecha_creacion": borrador.fecha_creacion.isoformat(),
                     "pestana_actual": borrador.pestana_actual,
-                    "dias_antiguedad": borrador.dias_desde_modificacion(),
+                    "dias_antiguedad": borrador.dias_desde_modificacion,
                 }
             )
 
@@ -439,7 +466,7 @@ class ListaBorradoresView(CatalogadorRequiredMixin, ListView):
         return context
 
 
-class DescartarBorradorView(DeleteView):
+class DescartarBorradorView(CatalogadorRequiredMixin, DeleteView):
     """Vista para descartar un borrador (soft delete)"""
 
     model = BorradorObra
@@ -478,8 +505,11 @@ def recuperar_borrador_view(request, pk):
     request.session["borrador_id"] = borrador.id
     request.session["tipo_obra"] = tipo_obra_correcto
 
-    # Redirigir al formulario de creación con el tipo de obra correcto
     messages.info(request, f"Recuperando borrador: {borrador.titulo_temporal}")
+
+    # Si es borrador de edición, volver a la obra original
+    if borrador.obra_objetivo_id:
+        return redirect("catalogacion:editar_obra", pk=borrador.obra_objetivo_id)
 
     return redirect("catalogacion:crear_obra", tipo=tipo_obra_correcto)
 

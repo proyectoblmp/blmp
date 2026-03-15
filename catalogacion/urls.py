@@ -23,6 +23,7 @@ from catalogacion.views import borradores as borradores_views
 from catalogacion.views.api_views import (
     Autocompletado773View,
     buscar_obras,
+    obtener_bio_compositor,
     obtener_obras_774,
 )
 
@@ -176,5 +177,10 @@ urlpatterns = [
         "api/obras/774-entries/",
         obtener_obras_774,
         name="api_obtener_obras_774",
+    ),
+    path(
+        "api/compositor/bio-545/",
+        obtener_bio_compositor,
+        name="api_compositor_bio_545",
     ),
 ]

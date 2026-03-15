@@ -740,7 +740,7 @@
     const notif = document.createElement("div");
     notif.textContent = mensaje;
     notif.style.cssText = `
-            position: fixed; top: 20px; right: 20px;
+            position: fixed; bottom: 20px; right: 20px;
             padding: 12px 20px; border-radius: 4px;
             color: white; font-size: 14px; font-weight: 500;
             z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.15);

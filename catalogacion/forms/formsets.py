@@ -535,7 +535,7 @@ OtrasRelaciones787FormSet = inlineformset_factory(
     ObraGeneral,
     OtrasRelaciones787,
     form=OtrasRelaciones787Form,
-    extra=1,
+    extra=0,
     can_delete=True,
 )
 

@@ -29,8 +29,8 @@ class MedioInterpretacion382(models.Model):
         max_length=100,
         blank=True,
         null=True,
-        default='piano',
-        help_text="382 $b — Solista (predeterminado: piano)"
+        default='---------',
+        help_text="382 $b — Solista (predeterminado: ---------)"
     )
     
     fecha_creacion = models.DateTimeField(auto_now_add=True)

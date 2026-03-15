@@ -22,6 +22,16 @@ class AutoridadPersona(models.Model):
         null=True,
         help_text="Coordenadas biográficas: año nacimiento - año muerte"
     )
+    nota_biografica = models.TextField(
+        blank=True,
+        default='',
+        help_text="Nota biográfica del compositor (MARC 545 $a)"
+    )
+    uri_nota_biografica = models.URLField(
+        blank=True,
+        default='',
+        help_text="URL de referencia biográfica (MARC 545 $u)"
+    )
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_modificacion = models.DateTimeField(auto_now=True)
 

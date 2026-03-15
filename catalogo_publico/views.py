@@ -22,9 +22,9 @@ class HomePublicoView(TemplateView):
         context = super().get_context_data(**kwargs)
         context["titulo"] = "Catálogo Musical MARC21"
         # Solo contar obras publicadas
-        context["total_obras"] = ObraGeneral.objects.filter(publicada=True).count()
+        context["total_obras"] = ObraGeneral.objects.filter(publicada=True, activo=True).count()
         # Últimas obras PUBLICADAS (no solo registradas)
-        context["ultimas_obras"] = ObraGeneral.objects.filter(publicada=True).order_by(
+        context["ultimas_obras"] = ObraGeneral.objects.filter(publicada=True, activo=True).order_by(
             "-fecha_creacion_sistema"
         )[:6]
         return context
@@ -40,7 +40,7 @@ class ListaObrasPublicaView(ListView):
 
     def get_queryset(self):
         queryset = (
-            ObraGeneral.objects.filter(publicada=True)  # Solo obras publicadas
+            ObraGeneral.objects.filter(publicada=True, activo=True)  # Solo obras publicadas y activas
             .select_related(
                 "compositor",
                 "titulo_uniforme",
@@ -234,7 +234,7 @@ class DetalleObraPublicaView(DetailView):
 
     def get_queryset(self):
         return (
-            ObraGeneral.objects.filter(publicada=True)  # Solo obras publicadas
+            ObraGeneral.objects.filter(publicada=True, activo=True)  # Solo obras publicadas y activas
             .select_related(
                 "compositor",
                 "titulo_uniforme",
@@ -312,7 +312,7 @@ class VistaDetalladaObraView(DetailView):
 
     def get_queryset(self):
         return (
-            ObraGeneral.objects.filter(publicada=True)  # Solo obras publicadas
+            ObraGeneral.objects.filter(publicada=True, activo=True)  # Solo obras publicadas y activas
             .select_related(
                 "compositor",
                 "titulo_uniforme",
@@ -417,7 +417,7 @@ class FormatoMARC21View(DetailView):
 
     def get_queryset(self):
         return (
-            ObraGeneral.objects.filter(publicada=True)  # Solo obras publicadas
+            ObraGeneral.objects.filter(publicada=True, activo=True)  # Solo obras publicadas y activas
             .select_related(
                 "compositor",
                 "titulo_uniforme",
@@ -489,7 +489,7 @@ class DescargarPDFObraView(View):
     """Vista para descargar el PDF de una obra (segmentado si corresponde)"""
 
     def get(self, request, pk):
-        obra = get_object_or_404(ObraGeneral.objects.filter(publicada=True), pk=pk)
+        obra = get_object_or_404(ObraGeneral.objects.filter(publicada=True, activo=True), pk=pk)
 
         # Prioridad 1: DigitalSet propio de la obra
         ds = DigitalSet.objects.filter(obra=obra).first()
@@ -531,7 +531,7 @@ class VistaMARCCrudoView(DetailView):
     context_object_name = "obra"
 
     def get_queryset(self):
-        return ObraGeneral.objects.filter(publicada=True)  # Solo obras publicadas
+        return ObraGeneral.objects.filter(publicada=True, activo=True)  # Solo obras publicadas y activas
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

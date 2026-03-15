@@ -59,6 +59,17 @@
                 coordenadasInput.value =
                     item.raw?.coordenadas_biograficas || "";
             }
+            // Limpiar 545 al cambiar de compositor para que siempre se intente
+            // auto-llenar con los datos del nuevo compositor seleccionado
+            const bio545prev = document.querySelector(
+                '[data-formset-prefix="biograficos_545"] textarea[name*="texto_biografico"]'
+            );
+            const uri545prev = document.querySelector(
+                '[data-formset-prefix="biograficos_545"] input[name*="uri"]'
+            );
+            if (bio545prev) bio545prev.value = "";
+            if (uri545prev) uri545prev.value = "";
+            if (item.id) llenarBio545(item.id);
         },
         onCreate: (query, elements) => {
             elements.input.value = query;
@@ -102,6 +113,25 @@
             .catch((error) =>
                 console.error("Error al precargar compositor", error)
             );
+    }
+
+    function llenarBio545(compositorId) {
+        const bio545 = document.querySelector(
+            '[data-formset-prefix="biograficos_545"] textarea[name*="texto_biografico"]'
+        );
+        const uri545 = document.querySelector(
+            '[data-formset-prefix="biograficos_545"] input[name*="uri"]'
+        );
+        if (!bio545) return;
+
+        fetch(`/catalogacion/api/compositor/bio-545/?compositor_id=${compositorId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success || !data.datos) return;
+                bio545.value = data.datos.texto_biografico || '';
+                if (uri545 && data.datos.uri) uri545.value = data.datos.uri;
+            })
+            .catch(err => console.warn('[545 auto-fill]', err));
     }
 
     function escapeHtml(text) {

@@ -59,22 +59,6 @@
             const fieldCode = btn.getAttribute("data-field-code");
             if (!fieldCode) return;
 
-            // Crear tooltip si no existe
-            if (!btn.querySelector(".campo-help-tooltip")) {
-                const tooltip = document.createElement("div");
-                tooltip.className = "campo-help-tooltip";
-
-                const helpText = getHelpText(fieldCode);
-                if (helpText) {
-                    tooltip.textContent = helpText;
-                } else {
-                    tooltip.textContent = "Información de ayuda no disponible.";
-                    tooltip.classList.add("campo-help-tooltip-empty");
-                }
-
-                btn.appendChild(tooltip);
-            }
-
             // Click: abrir modal dinámico con el contenido del JSON o formulario si data-help-mode="form"
             btn.addEventListener('click', async function (e) {
                 e.stopPropagation();
