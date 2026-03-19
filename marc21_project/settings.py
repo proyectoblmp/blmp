@@ -138,8 +138,6 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [
     BASE_DIR / "static",  # Carpeta global de estáticos
-    BASE_DIR / "catalogacion" / "static",  # Estáticos específicos de catalogación
-    BASE_DIR / "digitalizacion" / "static",  # Estáticos específicos de digitalización
 ]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
