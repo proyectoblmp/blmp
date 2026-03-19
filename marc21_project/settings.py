@@ -141,7 +141,7 @@ STATICFILES_DIRS = [
 ]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_ROOT = Path("/var/www/blmp/staticfiles")
 # DEFAULT_FILE_STORAGE  para manejar archivos media (como los covers) usando el sistema de archivos remoto
 
 
