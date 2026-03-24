@@ -137,6 +137,14 @@ El botón de agregar campo completo está en el header del campo (campo-add-btn)
     <div class="formset-forms">
         {% for form in formset %}
         <div class="formset-row {% if form.instance.pk %}existing-form{% endif %}">
+            {% for hidden in form.hidden_fields %}
+            {{ hidden }}
+            {% endfor %}
+
+            {% if formset.can_delete %}
+            <div class="d-none">{{ form.DELETE }}</div>
+            {% endif %}
+
             {% if form.instance.pk %}
             <input type="hidden" name="{{ form.prefix }}-id" value="{{ form.instance.pk }}">
             {% endif %}
@@ -479,9 +487,8 @@ El botón de agregar campo completo está en el header del campo (campo-add-btn)
                 </div>
             </div>
         </div>
-
+        {% endfor %}
     </div>
-    {% endfor %}
 
     {# Template vacío para clonar (mismo layout, usando empty_form) #}
     <div class="formset-row empty-form" style="display:none;">
