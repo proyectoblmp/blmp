@@ -248,6 +248,23 @@ Estilo compatible con 856 / 700
                 w.removeAttribute("data-autocomplete-init");
                 initAutocomplete(w);
             });
+
+        // Pre-rellenar 774 $a con el compositor de la fila anterior
+        const allRows = container.querySelectorAll(".formset-row:not(.empty-form)");
+        if (allRows.length >= 2) {
+            const prevRow = allRows[allRows.length - 2];
+            const prevTexto  = prevRow.querySelector("[name$='encabezamiento_principal_texto']");
+            const prevHidden = prevRow.querySelector("[name$='encabezamiento_principal']");
+            const newTexto   = root.querySelector("[name$='encabezamiento_principal_texto']");
+            const newHidden  = root.querySelector("[name$='encabezamiento_principal']");
+
+            if (prevTexto && newTexto && prevTexto.value) {
+                newTexto.value = prevTexto.value;
+            }
+            if (prevHidden && newHidden && prevHidden.value) {
+                newHidden.value = prevHidden.value;
+            }
+        }
     });
 
     /* =====================================================
