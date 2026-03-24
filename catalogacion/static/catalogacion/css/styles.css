@@ -431,6 +431,32 @@ textarea.form-control {
     transform: scale(1.05);
 }
 
+.inline-add-row-btn {
+    position: absolute;
+    right: 0.625rem;
+    bottom: 0.625rem;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--accent);
+    background: white;
+    color: var(--accent);
+    border-radius: 50%;
+    transition: var(--transition);
+    z-index: 10;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.inline-add-row-btn:hover {
+    background: var(--accent);
+    color: white;
+    transform: scale(1.05);
+}
+
 .formset-row[data-marked-delete="true"] {
     opacity: 0.5;
     background: var(--gray-100);
