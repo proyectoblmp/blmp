@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-u#)zn$bx21fz@5v(8c%ejx!p4d*s4d0m4*!y%+kn&u^u3&p&s$"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = ["*", "testserver", "localhost", "127.0.0.1", ".ngrok-free.app", ".ngrok-free.dev"]
 
@@ -147,7 +147,13 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+        # En producción (DEBUG=False): hash en el nombre del archivo → fuerza refresco de caché
+        # En desarrollo (DEBUG=True): comportamiento estándar sin hash
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if DEBUG
+            else "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+        ),
     },
 }
 # DEFAULT_FILE_STORAGE  para manejar archivos media (como los covers) usando el sistema de archivos remoto
