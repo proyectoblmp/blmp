@@ -27,6 +27,195 @@
 }
 
 /* ============================================
+   KPI CARDS — DASHBOARD PRINCIPAL
+   ============================================ */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+@media (max-width: 1024px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+    .kpi-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+}
+
+.kpi-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 1.25rem 1.25rem 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    border: 1px solid var(--admin-border-light);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px;
+    height: 100%;
+    border-radius: 10px 0 0 10px;
+}
+
+.kpi-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
+}
+
+.kpi-card__icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.125rem;
+    flex-shrink: 0;
+}
+
+.kpi-card__body {
+    flex: 1;
+    min-width: 0;
+}
+
+.kpi-card__value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.2rem;
+    color: var(--admin-primary);
+}
+
+.kpi-card__label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--admin-text-light);
+    margin-bottom: 0.375rem;
+}
+
+.kpi-card__sub {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    color: var(--admin-text-light);
+}
+
+.kpi-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.kpi-dot--green  { background: #10b981; }
+.kpi-dot--amber  { background: #f59e0b; }
+.kpi-dot--red    { background: #ef4444; }
+.kpi-dot--blue   { background: #3b82f6; }
+
+/* Color variants */
+.kpi-card--blue::before  { background: #2563eb; }
+.kpi-card--blue .kpi-card__icon { background: #eff6ff; color: #2563eb; }
+
+.kpi-card--purple::before { background: #7c3aed; }
+.kpi-card--purple .kpi-card__icon { background: #f5f3ff; color: #7c3aed; }
+
+.kpi-card--teal::before  { background: #0d9488; }
+.kpi-card--teal .kpi-card__icon { background: #f0fdfa; color: #0d9488; }
+
+.kpi-card--amber::before { background: #d97706; }
+.kpi-card--amber .kpi-card__icon { background: #fffbeb; color: #d97706; }
+
+/* ============================================
+   ROLE BADGE VARIANTS
+   ============================================ */
+.role-badge--catalogador { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+.role-badge--revisor     { background: #f5f3ff; color: #7c3aed; border-color: #ddd6fe; }
+.role-badge--admin       { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+
+/* ============================================
+   DASH ACTION BUTTONS (Quick Actions)
+   ============================================ */
+.dash-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0.875rem;
+    border: 1px solid var(--admin-border-light);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--admin-text);
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.dash-action-btn > i:first-child {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: var(--admin-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    color: var(--admin-text-light);
+    transition: all 0.15s ease;
+}
+
+.dash-action-btn:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+    color: var(--admin-primary);
+}
+
+.dash-action-btn:hover > i:first-child {
+    background: #e2e8f0;
+    color: var(--admin-primary);
+}
+
+.dash-action-btn--primary {
+    background: var(--admin-primary);
+    border-color: var(--admin-primary);
+    color: #fff;
+}
+
+.dash-action-btn--primary > i:first-child {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+}
+
+.dash-action-btn--primary:hover {
+    background: var(--admin-primary-light);
+    border-color: var(--admin-primary-light);
+    color: #fff;
+}
+
+.dash-action-btn--primary:hover > i:first-child {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+}
+
+.dash-action-btn__title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.dash-action-btn__sub {
+    font-size: 0.75rem;
+    opacity: 0.65;
+    margin-top: 0.1rem;
+}
+
+/* ============================================
    DASHBOARD - ESTADÍSTICAS COMPACTAS
    ============================================ */
 .admin-stats {

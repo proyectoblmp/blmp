@@ -14,6 +14,7 @@ from .views import (
     EliminarUsuarioView,
     ToggleActivoUsuarioView,
     ResetPasswordUsuarioView,
+    BulkForcePasswordChangeView,
     # Perfil propio
     PerfilView,
     CambiarPasswordView,
@@ -42,6 +43,7 @@ urlpatterns = [
     path('admin/usuarios/<int:pk>/eliminar/', EliminarUsuarioView.as_view(), name='eliminar_usuario'),
     path('admin/usuarios/<int:pk>/toggle-activo/', ToggleActivoUsuarioView.as_view(), name='toggle_activo_usuario'),
     path('admin/usuarios/<int:pk>/reset-password/', ResetPasswordUsuarioView.as_view(), name='reset_password_usuario'),
+    path('admin/usuarios/forzar-cambio-masivo/', BulkForcePasswordChangeView.as_view(), name='bulk_force_password'),
 
     # ---- Compatibilidad: rutas antiguas de catalogadores ----
     path('admin/catalogadores/', lambda req: redirect(reverse_lazy('usuarios:lista_usuarios')), name='lista_catalogadores'),

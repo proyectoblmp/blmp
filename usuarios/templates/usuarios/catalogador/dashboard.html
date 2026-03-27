@@ -1,78 +1,179 @@
 {% extends 'usuarios/catalogador/base_catalogador.html' %}
 
 {% block title %}Panel del Catalogador{% endblock %}
-{% block page_title %}Panel del Catalogador{% endblock %}
+{% block page_title %}Inicio{% endblock %}
 
 {% block content %}
-<div class="catalogador-welcome">
-    <div class="welcome-inner d-flex flex-wrap justify-content-between align-items-center gap-3">
-        <div>
-            <p class="text-uppercase text-white-50 mb-1 fw-semibold">Panel del catalogador</p>
-            <h2 class="mb-1">Hola, {{ user.nombre_completo|default:user.email }}</h2>
-            <p class="mb-0">Area de catalogación musical</p>
-        </div>
-        <div class="d-flex gap-2">
-            <a href="{% url 'catalogacion:seleccionar_tipo' %}" class="btn btn-light btn-sm fw-semibold">
-                <i class="bi bi-plus-lg"></i> Nueva obra
-            </a>
-        </div>
+
+<!-- ===== WELCOME BANNER ===== -->
+<div class="catalogador-welcome mb-4">
+  <div class="welcome-inner d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+      <p class="text-uppercase mb-1 fw-semibold" style="opacity:0.6;font-size:0.75rem;letter-spacing:0.06em;">Panel del catalogador</p>
+      <h2 class="mb-1 fw-semibold">Hola, {{ user.nombre_completo|default:user.email }}</h2>
+      <p class="mb-0" style="opacity:0.75;">Área de catalogación musical MARC21</p>
     </div>
+    <a href="{% url 'catalogacion:seleccionar_tipo' %}" class="btn btn-light btn-sm fw-semibold px-3">
+      <i class="bi bi-plus-lg me-1"></i> Nueva obra
+    </a>
+  </div>
 </div>
 
+<!-- ===== KPI CARDS ===== -->
+<div class="cat-kpi-grid mb-4">
+
+  <div class="cat-kpi-card cat-kpi-card--blue">
+    <div class="cat-kpi-card__icon"><i class="bi bi-collection-fill"></i></div>
+    <div class="cat-kpi-card__value">{{ total_mis_obras }}</div>
+    <div class="cat-kpi-card__label">Mis Obras</div>
+  </div>
+
+  <div class="cat-kpi-card cat-kpi-card--green">
+    <div class="cat-kpi-card__icon"><i class="bi bi-check-circle-fill"></i></div>
+    <div class="cat-kpi-card__value">{{ mis_obras_publicadas }}</div>
+    <div class="cat-kpi-card__label">Publicadas</div>
+  </div>
+
+  <div class="cat-kpi-card cat-kpi-card--slate">
+    <div class="cat-kpi-card__icon"><i class="bi bi-file-earmark-text"></i></div>
+    <div class="cat-kpi-card__value">{{ mis_obras_sin_publicar }}</div>
+    <div class="cat-kpi-card__label">Sin Publicar</div>
+  </div>
+
+  <div class="cat-kpi-card cat-kpi-card--amber">
+    <div class="cat-kpi-card__icon"><i class="bi bi-pencil-square"></i></div>
+    <div class="cat-kpi-card__value">{{ mis_borradores }}</div>
+    <div class="cat-kpi-card__label">Borradores</div>
+  </div>
+
+</div>
+
+<!-- ===== QUICK ACTIONS ===== -->
 <div class="quick-actions mb-4">
-    <a href="{% url 'catalogacion:seleccionar_tipo' %}" class="quick-action-card new-obra">
-        <div class="action-icon">
-            <i class="bi bi-plus-circle"></i>
-        </div>
-        <h3>Nueva Obra</h3>
-        <p>Comienza a catalogar una nueva obra musical.</p>
-    </a>
-    <a href="{% url 'autoridades:lista_personas' %}" class="quick-action-card autoridades">
-        <div class="action-icon">
-            <i class="bi bi-person-badge"></i>
-        </div>
-        <h3>Autoridades</h3>
-        <p>Gestiona personas, entidades y títulos.</p>
-    </a>
-    <a href="{% url 'digitalizacion:dashboard' %}" class="quick-action-card digitalizacion">
-        <div class="action-icon">
-            <i class="bi bi-image"></i>
-        </div>
-        <h3>Importar Imágenes</h3>
-        <p>Gestiona colecciones y digitalización de documentos.</p>
-    </a>
+  <a href="{% url 'catalogacion:seleccionar_tipo' %}" class="quick-action-card new-obra">
+    <div class="action-icon">
+      <i class="bi bi-plus-circle-fill"></i>
+    </div>
+    <h3>Nueva Obra</h3>
+    <p>Iniciar catalogación MARC21</p>
+  </a>
+  <a href="{% url 'catalogacion:lista_borradores' %}" class="quick-action-card list-obras">
+    <div class="action-icon action-icon--amber">
+      <i class="bi bi-file-earmark-text-fill"></i>
+    </div>
+    <h3>Borradores</h3>
+    <p>Continuar obras en progreso</p>
+  </a>
+  <a href="{% url 'catalogacion:lista_obras' %}" class="quick-action-card autoridades">
+    <div class="action-icon action-icon--blue">
+      <i class="bi bi-collection-fill"></i>
+    </div>
+    <h3>Gestionar Obras</h3>
+    <p>Ver, editar y publicar obras</p>
+  </a>
+  <a href="{% url 'digitalizacion:dashboard' %}" class="quick-action-card digitalizacion">
+    <div class="action-icon">
+      <i class="bi bi-images"></i>
+    </div>
+    <h3>Digitalización</h3>
+    <p>Importar y gestionar imágenes</p>
+  </a>
 </div>
 
-<div class="card border-0 shadow-sm catalogador-card">
-    <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-        <h5 class="mb-0 d-flex align-items-center gap-2">
-            <i class="bi bi-lightning-charge-fill text-primary"></i> Accesos Rápidos
-        </h5>
-        <span class="text-muted small">Atajos frecuentes</span>
-    </div>
-    <div class="card-body catalogador-quicklinks">
-        <div class="row g-3">
-            <div class="col-md-3">
-                <a href="{% url 'catalogacion:crear_obra' tipo='coleccion_manuscrita' %}" class="btn btn-outline-secondary w-100">
-                    <i class="bi bi-file-earmark-plus"></i> Colección Manuscrita
+<!-- ===== MAIN ROW ===== -->
+<div class="row g-4">
+
+  <!-- Recent obras -->
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h6 class="mb-0 d-flex align-items-center gap-2 fw-semibold" style="color:#1e293b;">
+          <i class="bi bi-clock-history text-primary"></i> Obras Recientes
+        </h6>
+        <a href="{% url 'catalogacion:lista_obras' %}" class="btn btn-sm btn-outline-secondary">
+          Ver todas
+        </a>
+      </div>
+      <div class="card-body p-0">
+        {% if obras_recientes %}
+        <table class="table table-hover table-sm mb-0" style="font-size:0.8125rem;">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">N° Control</th>
+              <th>Título</th>
+              <th>Compositor</th>
+              <th class="text-end pe-3">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for obra in obras_recientes %}
+            <tr>
+              <td class="ps-3">
+                <span style="font-family:monospace;color:#64748b;font-size:0.75rem;">{{ obra.num_control|default:"—" }}</span>
+              </td>
+              <td>
+                <a href="{{ obra.get_absolute_url }}" class="text-decoration-none fw-medium" style="color:#1e293b;">
+                  {{ obra.titulo_principal|default:"Sin título"|truncatechars:40 }}
                 </a>
-            </div>
-            <div class="col-md-3">
-                <a href="{% url 'catalogacion:crear_obra' tipo='obra_manuscrita_individual' %}" class="btn btn-outline-secondary w-100">
-                    <i class="bi bi-file-earmark-plus"></i> Obra Individual
-                </a>
-            </div>
-            <div class="col-md-3">
-                <a href="{% url 'autoridades:crear_persona' %}" class="btn btn-outline-secondary w-100">
-                    <i class="bi bi-person-plus"></i> Nueva Persona
-                </a>
-            </div>
-            <div class="col-md-3">
-                <a href="{% url 'catalogo_publico:lista_obras' %}" class="btn btn-outline-secondary w-100">
-                    <i class="bi bi-globe"></i> Ver Catálogo Público
-                </a>
-            </div>
+              </td>
+              <td style="color:#64748b;">{{ obra.compositor|default:"—" }}</td>
+              <td class="text-end pe-3">
+                {% if obra.publicada %}
+                  <span class="badge bg-success-subtle text-success" style="font-size:0.7rem;">Publicada</span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary" style="font-size:0.7rem;">Borrador</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="text-center py-4" style="color:#94a3b8;">
+          <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:0.5rem;"></i>
+          <p class="mb-2" style="font-size:0.875rem;">Aún no tienes obras catalogadas.</p>
+          <a href="{% url 'catalogacion:seleccionar_tipo' %}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-lg"></i> Crear primera obra
+          </a>
         </div>
+        {% endif %}
+      </div>
     </div>
+  </div>
+
+  <!-- Accesos Rápidos -->
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white py-3">
+        <h6 class="mb-0 fw-semibold d-flex align-items-center gap-2" style="color:#1e293b;">
+          <i class="bi bi-grid-1x2-fill text-primary"></i> Atajos
+        </h6>
+      </div>
+      <div class="card-body d-flex flex-column gap-2">
+        <a href="{% url 'catalogacion:crear_obra' tipo='coleccion_manuscrita' %}" class="cat-shortcut-btn">
+          <i class="bi bi-file-earmark-plus"></i> Colección Manuscrita
+        </a>
+        <a href="{% url 'catalogacion:crear_obra' tipo='obra_manuscrita_individual' %}" class="cat-shortcut-btn">
+          <i class="bi bi-file-earmark-music"></i> Obra Manuscrita Individual
+        </a>
+        <a href="{% url 'catalogacion:crear_obra' tipo='coleccion_impresa' %}" class="cat-shortcut-btn">
+          <i class="bi bi-journals"></i> Colección Impresa
+        </a>
+        <a href="{% url 'catalogacion:crear_obra' tipo='obra_impresa_individual' %}" class="cat-shortcut-btn">
+          <i class="bi bi-book"></i> Obra Impresa Individual
+        </a>
+        <hr class="my-1">
+        <a href="{% url 'autoridades:crear_persona' %}" class="cat-shortcut-btn">
+          <i class="bi bi-person-plus"></i> Nueva Persona (Autoridad)
+        </a>
+        <a href="{% url 'catalogo_publico:lista_obras' %}" class="cat-shortcut-btn" target="_blank" rel="noopener">
+          <i class="bi bi-globe2"></i> Ver Catálogo Público
+          <i class="bi bi-box-arrow-up-right ms-auto" style="font-size:0.7rem;opacity:0.4;"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
 </div>
+
 {% endblock %}

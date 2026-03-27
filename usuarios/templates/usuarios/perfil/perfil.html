@@ -74,11 +74,7 @@
                 <span style="font-size:0.7rem;color:var(--admin-text-light);">El email no se puede cambiar desde aquí. Contacta al administrador.</span>
             </div>
 
-            <div style="display:flex;align-items:center;justify-content:flex-end;gap:0.75rem;padding-top:1rem;border-top:1px solid var(--admin-border-light);">
-                <a href="{% url 'usuarios:cambiar_password' %}"
-                   style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 1rem;border-radius:8px;font-size:0.8125rem;font-weight:500;text-decoration:none;background:white;color:var(--admin-text);border:1.5px solid var(--admin-border);">
-                    <i class="bi bi-key"></i> Cambiar Contraseña
-                </a>
+            <div style="display:flex;align-items:center;justify-content:flex-end;padding-top:1rem;border-top:1px solid var(--admin-border-light);">
                 <button type="submit"
                         style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 1rem;border-radius:8px;font-size:0.8125rem;font-weight:500;background:var(--admin-primary);color:white;border:none;cursor:pointer;">
                     <i class="bi bi-check-lg"></i> Guardar Cambios
@@ -88,7 +84,7 @@
     </div>
 
     <!-- Información adicional -->
-    <div style="background:white;border-radius:12px;padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+    <div style="background:white;border-radius:12px;padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:1rem;">
         <h3 style="font-size:0.875rem;font-weight:600;color:var(--admin-primary);text-transform:uppercase;letter-spacing:0.05em;margin:0 0 1rem;display:flex;align-items:center;gap:0.5rem;">
             <i class="bi bi-info-circle"></i> Información de la Cuenta
         </h3>
@@ -113,5 +109,41 @@
             </div>
         </div>
     </div>
+
+    <!-- Seguridad -->
+    <div style="background:white;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+        <div style="padding:1rem 1.25rem;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:0.5rem;">
+            <i class="bi bi-shield-lock" style="color:#293042;font-size:1rem;"></i>
+            <h3 style="font-size:0.875rem;font-weight:600;color:#293042;text-transform:uppercase;letter-spacing:0.05em;margin:0;">Seguridad</h3>
+        </div>
+        <div style="padding:1rem 1.25rem;">
+            {% if user.debe_cambiar_password %}
+            <div style="display:flex;align-items:flex-start;gap:0.75rem;padding:0.75rem 1rem;background:#fef3c7;border:1.5px solid #fde68a;border-radius:8px;margin-bottom:1rem;">
+                <i class="bi bi-exclamation-triangle-fill" style="color:#d97706;font-size:1rem;flex-shrink:0;margin-top:1px;"></i>
+                <div>
+                    <p style="margin:0;font-size:0.875rem;font-weight:600;color:#92400e;">Cambio de contraseña requerido</p>
+                    <p style="margin:0.25rem 0 0;font-size:0.8125rem;color:#b45309;">Un administrador ha solicitado que establezcas una nueva contraseña.</p>
+                </div>
+            </div>
+            {% else %}
+            <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.8125rem;color:#16a34a;margin-bottom:1rem;">
+                <i class="bi bi-check-circle-fill"></i> Tu contraseña está al día.
+            </div>
+            {% endif %}
+
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;">
+                <div>
+                    <p style="margin:0;font-size:0.75rem;color:var(--admin-text-light);">Contraseña</p>
+                    <p style="margin:0;font-size:0.875rem;color:var(--admin-text);">••••••••••••</p>
+                </div>
+                <a href="{% url 'usuarios:cambiar_password' %}"
+                   style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 1rem;border-radius:8px;font-size:0.8125rem;font-weight:500;text-decoration:none;background:{% if user.debe_cambiar_password %}#d97706{% else %}var(--admin-primary){% endif %};color:white;">
+                    <i class="bi bi-key-fill"></i>
+                    {% if user.debe_cambiar_password %}Cambiar ahora{% else %}Cambiar Contraseña{% endif %}
+                </a>
+            </div>
+        </div>
+    </div>
+
 </div>
 {% endblock %}

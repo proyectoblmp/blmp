@@ -1,67 +1,182 @@
 {% extends 'usuarios/admin/base_admin.html' %}
 
-{% block title %}Dashboard - Admin{% endblock %}
+{% block title %}Dashboard - Administración{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
-<!-- Estadísticas -->
-<div class="admin-stats">
-    <div class="stat-card">
-        <div class="stat-card-header">
-            <div class="stat-card-icon"><i class="bi bi-people"></i></div>
-        </div>
-        <div class="stat-card-value">{{ total_catalogadores }}</div>
-        <div class="stat-card-label">Total Catalogadores</div>
-    </div>
 
-    <div class="stat-card">
-        <div class="stat-card-header">
-            <div class="stat-card-icon"><i class="bi bi-person-check"></i></div>
-        </div>
-        <div class="stat-card-value">{{ catalogadores_activos }}</div>
-        <div class="stat-card-label">Catalogadores Activos</div>
-    </div>
+<!-- ===== KPI CARDS ===== -->
+<div class="kpi-grid mb-4">
 
-    <div class="stat-card">
-        <div class="stat-card-header">
-            <div class="stat-card-icon"><i class="bi bi-eye"></i></div>
-        </div>
-        <div class="stat-card-value">{{ total_revisores }}</div>
-        <div class="stat-card-label">Total Revisores</div>
+  <div class="kpi-card kpi-card--blue">
+    <div class="kpi-card__icon">
+      <i class="bi bi-people-fill"></i>
     </div>
+    <div class="kpi-card__body">
+      <div class="kpi-card__value">{{ total_catalogadores }}</div>
+      <div class="kpi-card__label">Catalogadores</div>
+      <div class="kpi-card__sub">
+        <span class="kpi-dot kpi-dot--green"></span>
+        {{ catalogadores_activos }} activos
+      </div>
+    </div>
+  </div>
 
-    <div class="stat-card">
-        <div class="stat-card-header">
-            <div class="stat-card-icon"><i class="bi bi-person-lines-fill"></i></div>
-        </div>
-        <div class="stat-card-value">{{ revisores_activos }}</div>
-        <div class="stat-card-label">Revisores Activos</div>
+  <div class="kpi-card kpi-card--purple">
+    <div class="kpi-card__icon">
+      <i class="bi bi-eye-fill"></i>
     </div>
+    <div class="kpi-card__body">
+      <div class="kpi-card__value">{{ total_revisores }}</div>
+      <div class="kpi-card__label">Revisores</div>
+      <div class="kpi-card__sub">
+        <span class="kpi-dot kpi-dot--green"></span>
+        {{ revisores_activos }} activos
+      </div>
+    </div>
+  </div>
+
+  <div class="kpi-card kpi-card--teal">
+    <div class="kpi-card__icon">
+      <i class="bi bi-music-note-beamed"></i>
+    </div>
+    <div class="kpi-card__body">
+      <div class="kpi-card__value">{{ total_obras }}</div>
+      <div class="kpi-card__label">Obras Catalogadas</div>
+      <div class="kpi-card__sub">
+        <span class="kpi-dot kpi-dot--green"></span>
+        {{ obras_publicadas }} publicadas
+      </div>
+    </div>
+  </div>
+
+  <div class="kpi-card kpi-card--amber">
+    <div class="kpi-card__icon">
+      <i class="bi bi-hourglass-split"></i>
+    </div>
+    <div class="kpi-card__body">
+      <div class="kpi-card__value">{{ obras_sin_publicar }}</div>
+      <div class="kpi-card__label">Sin Publicar</div>
+      <div class="kpi-card__sub">
+        <span class="kpi-dot kpi-dot--amber"></span>
+        Pendientes de revisión
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<!-- Acciones rápidas -->
-<div class="admin-stats" style="margin-top:0;">
-    <div class="stat-card">
-        <div class="stat-card-label stat-card-actions-title">Acciones Rápidas</div>
-        <div class="quick-actions">
-            <a href="{% url 'usuarios:crear_usuario' %}" class="quick-action-btn primary">
-                <i class="bi bi-person-plus"></i> Nuevo Usuario
-            </a>
-            <a href="{% url 'usuarios:lista_usuarios' %}" class="quick-action-btn">
-                <i class="bi bi-list"></i> Ver Todos
-            </a>
-        </div>
+<!-- ===== MAIN ROW ===== -->
+<div class="row g-4">
+
+  <!-- Quick Actions -->
+  <div class="col-lg-4">
+    <div class="admin-card h-100">
+      <div class="admin-card-header">
+        <h6 class="admin-card-title">
+          <i class="bi bi-lightning-charge-fill"></i> Acciones Rápidas
+        </h6>
+      </div>
+      <div class="admin-card-body d-flex flex-column gap-2">
+        <a href="{% url 'usuarios:crear_usuario' %}" class="dash-action-btn dash-action-btn--primary">
+          <i class="bi bi-person-plus-fill"></i>
+          <div>
+            <div class="dash-action-btn__title">Nuevo Usuario</div>
+            <div class="dash-action-btn__sub">Crear catalogador, revisor o admin</div>
+          </div>
+          <i class="bi bi-chevron-right ms-auto"></i>
+        </a>
+        <a href="{% url 'usuarios:lista_usuarios' %}" class="dash-action-btn">
+          <i class="bi bi-people"></i>
+          <div>
+            <div class="dash-action-btn__title">Gestionar Usuarios</div>
+            <div class="dash-action-btn__sub">Ver, editar y activar/desactivar</div>
+          </div>
+          <i class="bi bi-chevron-right ms-auto"></i>
+        </a>
+        <a href="{% url 'catalogacion:lista_obras' %}" class="dash-action-btn">
+          <i class="bi bi-collection"></i>
+          <div>
+            <div class="dash-action-btn__title">Ver Catálogo</div>
+            <div class="dash-action-btn__sub">Todas las obras catalogadas</div>
+          </div>
+          <i class="bi bi-chevron-right ms-auto"></i>
+        </a>
+        <a href="{% url 'catalogo_publico:home' %}" class="dash-action-btn" target="_blank" rel="noopener">
+          <i class="bi bi-globe2"></i>
+          <div>
+            <div class="dash-action-btn__title">Sitio Público</div>
+            <div class="dash-action-btn__sub">Ver el catálogo como visitante</div>
+          </div>
+          <i class="bi bi-box-arrow-up-right ms-auto" style="font-size:0.75rem;opacity:0.5;"></i>
+        </a>
+      </div>
     </div>
+  </div>
+
+  <!-- Recent Users -->
+  <div class="col-lg-8">
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h6 class="admin-card-title">
+          <i class="bi bi-clock-history"></i> Usuarios Recientes
+        </h6>
+        <a href="{% url 'usuarios:lista_usuarios' %}" class="admin-btn admin-btn-sm admin-btn-secondary">
+          Ver todos
+        </a>
+      </div>
+      <div class="admin-card-body p-0">
+        {% if usuarios_recientes %}
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Rol</th>
+              <th>Estado</th>
+              <th class="text-end">Registrado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for u in usuarios_recientes %}
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar">{{ u.nombre_completo|default:u.email|slice:":2"|upper }}</div>
+                  <div>
+                    <div class="user-name">{{ u.nombre_completo|default:"—" }}</div>
+                    <div class="user-email-cell">{{ u.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="role-badge role-badge--{{ u.rol }}">{{ u.get_rol_display }}</span>
+              </td>
+              <td>
+                {% if u.activo %}
+                  <span class="status-badge active">Activo</span>
+                {% else %}
+                  <span class="status-badge inactive">Inactivo</span>
+                {% endif %}
+              </td>
+              <td class="date-cell text-end">{{ u.fecha_creacion|date:"d/m/Y" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="admin-empty-state">
+          <div class="admin-empty-icon"><i class="bi bi-people"></i></div>
+          <div class="admin-empty-title">Sin usuarios</div>
+          <div class="admin-empty-text">Crea el primer usuario del sistema.</div>
+          <a href="{% url 'usuarios:crear_usuario' %}" class="admin-btn admin-btn-primary admin-btn-sm">
+            <i class="bi bi-person-plus"></i> Crear usuario
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<div class="admin-info-card">
-    <div class="admin-info-card-title">
-        <i class="bi bi-info-circle"></i>
-        Panel de Administración
-    </div>
-    <p class="admin-info-card-text">
-        Gestiona todos los usuarios del sistema (catalogadores, revisores y administradores).
-        Utiliza el menú lateral para navegar.
-    </p>
-</div>
 {% endblock %}

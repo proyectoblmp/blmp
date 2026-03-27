@@ -10,9 +10,16 @@
             <i class="bi bi-people"></i>
             Usuarios
         </h2>
-        <a href="{% url 'usuarios:crear_usuario' %}" class="admin-btn admin-btn-primary admin-btn-sm">
-            <i class="bi bi-person-plus"></i> Nuevo Usuario
-        </a>
+        <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+            <a href="{% url 'usuarios:bulk_force_password' %}"
+               class="admin-btn admin-btn-sm admin-btn-secondary"
+               title="Forzar a todos los usuarios a cambiar su contraseña">
+                <i class="bi bi-shield-exclamation"></i> Forzar cambio masivo
+            </a>
+            <a href="{% url 'usuarios:crear_usuario' %}" class="admin-btn admin-btn-primary admin-btn-sm">
+                <i class="bi bi-person-plus"></i> Nuevo Usuario
+            </a>
+        </div>
     </div>
 
     <!-- Filtros por rol -->

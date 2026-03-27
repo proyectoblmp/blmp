@@ -53,9 +53,16 @@
 /* Cards de acciones rápidas */
 .quick-actions {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
     margin-bottom: 2rem;
+}
+
+@media (max-width: 900px) {
+    .quick-actions { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+    .quick-actions { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
 }
 
 .quick-action-card {
@@ -246,6 +253,129 @@
     border-color: #3ac1a1;
     color: #1c9f82;
     box-shadow: 0 8px 20px rgba(58,193,161,0.18);
+}
+
+/* icon color variants for quick action cards */
+.quick-action-card .action-icon--amber {
+    background: rgba(245,158,11,0.14);
+    color: #d97706;
+}
+.quick-action-card .action-icon--blue {
+    background: rgba(37,99,235,0.12);
+    color: #2563eb;
+}
+
+/* =============================================
+   KPI CARDS DEL CATALOGADOR
+   ============================================= */
+.cat-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 900px) {
+    .cat-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+    .cat-kpi-grid { gap: 0.75rem; }
+}
+
+.cat-kpi-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 1.1rem 1.1rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.cat-kpi-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
+}
+
+.cat-kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 3px;
+    border-radius: 10px 10px 0 0;
+}
+
+.cat-kpi-card__icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.cat-kpi-card__value {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #1e293b;
+}
+
+.cat-kpi-card__label {
+    font-size: 0.8125rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Color variants */
+.cat-kpi-card--blue::before { background: #2563eb; }
+.cat-kpi-card--blue .cat-kpi-card__icon { background: #eff6ff; color: #2563eb; }
+
+.cat-kpi-card--green::before { background: #059669; }
+.cat-kpi-card--green .cat-kpi-card__icon { background: #f0fdf4; color: #059669; }
+
+.cat-kpi-card--slate::before { background: #475569; }
+.cat-kpi-card--slate .cat-kpi-card__icon { background: #f1f5f9; color: #475569; }
+
+.cat-kpi-card--amber::before { background: #d97706; }
+.cat-kpi-card--amber .cat-kpi-card__icon { background: #fffbeb; color: #d97706; }
+
+/* =============================================
+   SHORTCUT BUTTONS (Atajos)
+   ============================================= */
+.cat-shortcut-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 7px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #334155;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    background: #f8fafc;
+}
+
+.cat-shortcut-btn:hover {
+    background: #f1f5f9;
+    border-color: #3ac1a1;
+    color: #1c9f82;
+}
+
+.cat-shortcut-btn i:first-child {
+    font-size: 0.9375rem;
+    width: 18px;
+    text-align: center;
+    opacity: 0.7;
+    flex-shrink: 0;
 }
 
 /* Responsive */

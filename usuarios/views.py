@@ -114,12 +114,22 @@ class AdminDashboardView(AdminRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        from catalogacion.models import ObraGeneral
+
         context['titulo'] = 'Panel de Administración'
         context['total_catalogadores'] = CustomUser.objects.filter(rol=CustomUser.ROL_CATALOGADOR).count()
         context['catalogadores_activos'] = CustomUser.objects.filter(rol=CustomUser.ROL_CATALOGADOR, activo=True).count()
         context['total_revisores'] = CustomUser.objects.filter(rol=CustomUser.ROL_REVISOR).count()
         context['revisores_activos'] = CustomUser.objects.filter(rol=CustomUser.ROL_REVISOR, activo=True).count()
         context['total_usuarios'] = CustomUser.objects.exclude(rol=CustomUser.ROL_ADMIN).count()
+        context['total_obras'] = ObraGeneral.objects.filter(activo=True).count()
+        context['obras_publicadas'] = ObraGeneral.objects.filter(activo=True, publicada=True).count()
+        context['obras_sin_publicar'] = ObraGeneral.objects.filter(activo=True, publicada=False).count()
+        context['usuarios_recientes'] = (
+            CustomUser.objects
+            .exclude(rol=CustomUser.ROL_ADMIN)
+            .order_by('-fecha_creacion')[:6]
+        )
         return context
 
 
@@ -129,7 +139,21 @@ class CatalogadorDashboardView(CatalogadorRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        from catalogacion.models import ObraGeneral, BorradorObra
+
+        user = self.request.user
+        mis_obras = ObraGeneral.objects.filter(activo=True, catalogador=user)
+
         context['titulo'] = 'Panel del Catalogador'
+        context['total_mis_obras'] = mis_obras.count()
+        context['mis_obras_publicadas'] = mis_obras.filter(publicada=True).count()
+        context['mis_obras_sin_publicar'] = mis_obras.filter(publicada=False).count()
+        context['mis_borradores'] = BorradorObra.objects.filter(usuario=user).count()
+        context['obras_recientes'] = (
+            mis_obras
+            .select_related('compositor')
+            .order_by('-fecha_modificacion_sistema')[:5]
+        )
         return context
 
 
@@ -262,6 +286,32 @@ class ResetPasswordUsuarioView(AdminRequiredMixin, FormView):
         nombre = usuario.nombre_completo or usuario.email
         messages.success(self.request, f'Contraseña de "{nombre}" actualizada exitosamente.')
         return redirect(reverse_lazy('usuarios:lista_usuarios'))
+
+
+class BulkForcePasswordChangeView(AdminRequiredMixin, TemplateView):
+    """El admin fuerza a todos los usuarios no-admin a cambiar su contraseña al próximo login"""
+    template_name = 'usuarios/admin/bulk_force_password.html'
+
+    def post(self, request, *args, **kwargs):
+        afectados = CustomUser.objects.exclude(rol=CustomUser.ROL_ADMIN).exclude(
+            debe_cambiar_password=True
+        )
+        count = afectados.count()
+        afectados.update(debe_cambiar_password=True)
+        messages.success(
+            request,
+            f'Se marcaron {count} usuario(s) para cambiar contraseña en su próximo inicio de sesión.'
+        )
+        return redirect(reverse_lazy('usuarios:lista_usuarios'))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo'] = 'Forzar Cambio de Contraseña'
+        context['sin_forzar'] = CustomUser.objects.exclude(rol=CustomUser.ROL_ADMIN).exclude(
+            debe_cambiar_password=True
+        ).count()
+        context['total_no_admin'] = CustomUser.objects.exclude(rol=CustomUser.ROL_ADMIN).count()
+        return context
 
 
 # ============================================================================
