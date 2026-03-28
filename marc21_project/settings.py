@@ -212,11 +212,13 @@ LOGOUT_REDIRECT_URL = "/"
 LOGIN_URL = "/usuarios/login/"
 X_FRAME_OPTIONS = "SAMEORIGIN"
 
-# Permitir que las cookies funcionen a través de ngrok (proxy HTTPS)
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SAMESITE = "None"
-SESSION_COOKIE_SAMESITE = "None"
+# Seguridad de cookies — configurables por variable de entorno
+# Para producción HTTP normal: dejar sin definir (defaults: Lax, no Secure)
+# Para ngrok (HTTPS cross-origin): CSRF_COOKIE_SAMESITE=None, CSRF_COOKIE_SECURE=True
+CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", "False") == "True"
+SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "False") == "True"
+CSRF_COOKIE_SAMESITE = os.environ.get("CSRF_COOKIE_SAMESITE", "Lax")
+SESSION_COOKIE_SAMESITE = os.environ.get("SESSION_COOKIE_SAMESITE", "Lax")
 
 # Sobrescrituras locales (credenciales, debug, etc.) — este archivo NO se sube al repo
 try:
