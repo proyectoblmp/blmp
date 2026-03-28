@@ -1,69 +1,150 @@
 {% extends "usuarios/catalogador/base_catalogador.html" %}
 
-{% block title %}Importar Imágenes – {% if es_coleccion %}Colección{% else %}Obra{% endif %}{% endblock %}
-{% block page_title %}Importar Imágenes – {% if es_coleccion %}Colección{% else %}Obra{% endif %}{% endblock %}
+{% block title %}Guía de Digitalización – {% if es_coleccion %}Colección{% else %}Obra{% endif %}{% endblock %}
+{% block page_title %}Guía de Digitalización{% endblock %}
+
+{% block extra_css %}
+<style>
+  .stepper {
+    position: relative;
+    padding-left: 0;
+    list-style: none;
+    margin: 0;
+  }
+  .step-item {
+    display: flex;
+    gap: 1rem;
+    padding-bottom: 1.5rem;
+    position: relative;
+  }
+  .step-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 40px;
+    bottom: 0;
+    width: 2px;
+    background: #E2E8F0;
+  }
+  .step-item.done:not(:last-child)::before { background: #22C55E; }
+  .step-item.active:not(:last-child)::before { background: #BFDBFE; }
+
+  .step-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: .9rem;
+    flex-shrink: 0;
+    border: 2px solid #E2E8F0;
+    background: #F8FAFC;
+    color: #94A3B8;
+    position: relative;
+    z-index: 1;
+    transition: all .2s ease;
+  }
+  .step-item.done .step-circle {
+    background: #22C55E;
+    border-color: #22C55E;
+    color: #fff;
+  }
+  .step-item.active .step-circle {
+    background: #2563EB;
+    border-color: #2563EB;
+    color: #fff;
+    box-shadow: 0 0 0 4px #BFDBFE;
+  }
+  .step-item.blocked .step-circle {
+    background: #F1F5F9;
+    border-color: #E2E8F0;
+    color: #CBD5E1;
+  }
+
+  .step-body { flex: 1; padding-top: 4px; }
+  .step-title {
+    font-weight: 600;
+    font-size: .95rem;
+    color: #1E293B;
+    line-height: 1.3;
+  }
+  .step-item.blocked .step-title { color: #94A3B8; }
+  .step-desc { font-size: .82rem; color: #64748B; margin-top: .15rem; }
+  .step-actions { margin-top: .6rem; display: flex; gap: .5rem; flex-wrap: wrap; }
+  .btn-sm { font-size: .8rem; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="card mb-3">
-  <div class="card-body">
-    <h5 class="mb-1">{{ obra.titulo_principal }}</h5>
-    <div class="text-muted small">
-      <strong>{{ obra.signatura_publica_display }}</strong>
-      {% if obra.autor_publico_principal %} · {{ obra.autor_publico_principal }}{% endif %}
-    </div>
-    <div class="mt-2">
-      {% if es_coleccion %}
-        <span class="badge bg-primary">Colección</span>
-      {% else %}
-        <span class="badge bg-info">Obra suelta</span>
+
+<div class="card mb-4 border-0 shadow-sm">
+  <div class="card-body py-3 px-4">
+    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
+      <div>
+        <h5 class="mb-1 fw-semibold">{{ obra.titulo_principal }}</h5>
+        <div class="text-muted small">
+          <strong>{{ obra.signatura_publica_display }}</strong>
+          {% if obra.autor_publico_principal %} · {{ obra.autor_publico_principal }}{% endif %}
+        </div>
+        <div class="mt-2">
+          {% if es_coleccion %}
+            <span class="badge bg-primary"><i class="bi bi-collection me-1"></i>Colección</span>
+          {% else %}
+            <span class="badge bg-info"><i class="bi bi-file-earmark-music me-1"></i>Obra suelta</span>
+          {% endif %}
+        </div>
+      </div>
+      {% if digital_set %}
+        <div class="text-end">
+          <div class="small text-muted mb-1">Estado general</div>
+          {% if digital_set.estado == "NUEVO" %}
+            <span class="badge fs-6 px-3 py-2" style="background:#E2E8F0;color:#475569;">Nuevo</span>
+          {% elif digital_set.estado == "IMPORTADO" %}
+            <span class="badge fs-6 px-3 py-2" style="background:#FEF9C3;color:#854D0E;">Importado</span>
+          {% elif digital_set.estado == "SEGMENTADO" %}
+            <span class="badge fs-6 px-3 py-2 bg-success">Segmentado</span>
+          {% endif %}
+        </div>
       {% endif %}
     </div>
   </div>
 </div>
 
-<div class="card">
-  <div class="card-body">
-    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-      <div>
-        <h6 class="mb-1">Guía de trabajo</h6>
-        <div class="text-muted small">Sigue los pasos en orden.</div>
-      </div>
-      <div class="text-end">
-        {% if digital_set %}
-          <span class="badge bg-info">Estado: {{ digital_set.estado }}</span>
-        {% else %}
-          <span class="badge bg-secondary">Sin importación</span>
-        {% endif %}
-      </div>
-    </div>
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-4">
+    <h6 class="fw-semibold mb-4 text-uppercase small text-muted letter-spacing-1">
+      <i class="bi bi-list-check me-1"></i>Pasos de trabajo
+    </h6>
 
-    <div class="list-group mt-3">
+    <ol class="stepper">
 
-      {# Paso 1: Importar #}
-      <div class="list-group-item d-flex justify-content-between align-items-start">
-        <div class="me-3">
-          <div class="fw-semibold">📥 Paso 1 · Importar TIFF / PDF</div>
-          <div class="text-muted small">
-            TIFF: importar desde INBOX. PDF: subir archivo.
-          </div>
-        </div>
-        <div class="text-end">
-          <div class="mb-2">
-            {% with total_pages=digital_set.total_pages|default:0 %}
-              {% if digital_set and total_pages > 0 or digital_set.pdf_path %}
-                <span class="badge bg-success">Listo</span>
-              {% else %}
-                <span class="badge bg-warning text-dark">Pendiente</span>
+      {# ───── PASO 1 ───── #}
+      {% with t=digital_set.total_pages|default:0 %}
+      {% if digital_set and t > 0 or digital_set.pdf_path %}
+        {% with step_class="done" %}
+        <li class="step-item {{ step_class }}">
+          <div class="step-circle"><i class="bi bi-check-lg"></i></div>
+          <div class="step-body">
+            <div class="step-title">Importar TIFF / PDF</div>
+            <div class="step-desc">
+              {% if digital_set.total_pages|default:0 > 0 %}
+                {{ digital_set.total_pages }} página(s) TIFF importada(s).
               {% endif %}
-            {% endwith %}
-          </div>
-          <div class="d-flex gap-2 justify-content-end flex-wrap">
-            <a class="btn btn-sm btn-primary" href="{% url 'digitalizacion:importar' obra.id %}">Importar TIFF</a>
-            <a class="btn btn-sm btn-outline-primary" href="{% url 'digitalizacion:subir_pdf' obra.id %}">Subir PDF</a>
-            {% if digital_set %}
+              {% if digital_set.pdf_path %}PDF cargado.{% endif %}
+            </div>
+            <div class="step-actions">
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'digitalizacion:importar' obra.id %}">
+                <i class="bi bi-arrow-repeat me-1"></i>Re-importar TIFF
+              </a>
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'digitalizacion:subir_pdf' obra.id %}">
+                <i class="bi bi-file-earmark-arrow-up me-1"></i>Reemplazar PDF
+              </a>
+              {% if digital_set %}
               <div class="dropdown d-inline-block">
                 <button class="btn btn-sm btn-outline-danger dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                  Eliminar
+                  <i class="bi bi-trash me-1"></i>Eliminar
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                   {% if digital_set.pdf_path %}
@@ -77,127 +158,186 @@
                   {% endif %}
                   <li>
                     <form method="post" action="{% url 'digitalizacion:eliminar_digitalset' obra.id %}"
-                          onsubmit="return confirm('¿Eliminar TODA la digitalización (PDF + imágenes)? Esta acción no se puede deshacer.');">
+                          onsubmit="return confirm('¿Eliminar TODA la digitalización? Esta acción no se puede deshacer.');">
                       {% csrf_token %}
                       <button type="submit" class="dropdown-item text-danger">Todo (PDF + imágenes)</button>
                     </form>
                   </li>
                 </ul>
               </div>
-            {% endif %}
+              {% endif %}
+            </div>
           </div>
-        </div>
-      </div>
-
-      {# Paso 2: Revisar #}
-      <div class="list-group-item d-flex justify-content-between align-items-start">
-        <div class="me-3">
-          <div class="fw-semibold">✅ Paso 2 · Revisar importación</div>
-          <div class="text-muted small">
-            {% if digital_set %}
-              TIFF: {{ digital_set.total_pages|default:0 }} páginas.
-              {% if digital_set.pdf_path %} · PDF: cargado{% else %} · PDF: no cargado{% endif %}
-            {% else %}
-              Importa TIFF o sube PDF para continuar.
-            {% endif %}
+        </li>
+        {% endwith %}
+      {% elif digital_set %}
+        <li class="step-item active">
+          <div class="step-circle">1</div>
+          <div class="step-body">
+            <div class="step-title">Importar TIFF / PDF</div>
+            <div class="step-desc">TIFF: importar desde INBOX. PDF: subir archivo.</div>
+            <div class="step-actions">
+              <a class="btn btn-sm btn-primary" href="{% url 'digitalizacion:importar' obra.id %}">
+                <i class="bi bi-images me-1"></i>Importar TIFF
+              </a>
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'digitalizacion:subir_pdf' obra.id %}">
+                <i class="bi bi-file-earmark-arrow-up me-1"></i>Subir PDF
+              </a>
+            </div>
           </div>
-        </div>
-        <div class="text-end">
-          {% with total_pages=digital_set.total_pages|default:0 %}
-            {% if digital_set and total_pages > 0 or digital_set.pdf_path %}
-              <span class="badge bg-success">Listo</span>
-            {% else %}
-              <span class="badge bg-secondary">Bloqueado</span>
-            {% endif %}
-          {% endwith %}
-        </div>
-      </div>
+        </li>
+      {% else %}
+        <li class="step-item active">
+          <div class="step-circle">1</div>
+          <div class="step-body">
+            <div class="step-title">Importar TIFF / PDF</div>
+            <div class="step-desc">TIFF: importar desde INBOX. PDF: subir archivo.</div>
+            <div class="step-actions">
+              <a class="btn btn-sm btn-primary" href="{% url 'digitalizacion:importar' obra.id %}">
+                <i class="bi bi-images me-1"></i>Importar TIFF
+              </a>
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'digitalizacion:subir_pdf' obra.id %}">
+                <i class="bi bi-file-earmark-arrow-up me-1"></i>Subir PDF
+              </a>
+            </div>
+          </div>
+        </li>
+      {% endif %}
+      {% endwith %}
 
+      {# ───── PASO 2 ───── #}
+      {% with t=digital_set.total_pages|default:0 %}
+      {% if digital_set and t > 0 or digital_set.pdf_path %}
+        <li class="step-item done">
+          <div class="step-circle"><i class="bi bi-check-lg"></i></div>
+          <div class="step-body">
+            <div class="step-title">Revisar importación</div>
+            <div class="step-desc">
+              TIFF: {{ digital_set.total_pages|default:0 }} página(s).
+              {% if digital_set.pdf_path %} · PDF cargado ({{ digital_set.pdf_total_pages|default:"?" }} páginas).{% else %} · Sin PDF.{% endif %}
+            </div>
+            <div class="step-actions">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'digitalizacion:visor_digital' obra.id %}">
+                <i class="bi bi-eye me-1"></i>Ver documento
+              </a>
+            </div>
+          </div>
+        </li>
+      {% else %}
+        <li class="step-item blocked">
+          <div class="step-circle">2</div>
+          <div class="step-body">
+            <div class="step-title">Revisar importación</div>
+            <div class="step-desc">Importa TIFF o sube PDF para continuar.</div>
+          </div>
+        </li>
+      {% endif %}
+      {% endwith %}
+
+      {# ───── PASO 3: Segmentar (solo colecciones) ───── #}
       {% if es_coleccion %}
-      {# Paso 3: Segmentar (solo para colecciones) #}
-      <div class="list-group-item d-flex justify-content-between align-items-start">
-        <div class="me-3">
-          <div class="fw-semibold">✂️ Paso 3 · Segmentar obras</div>
-          <div class="text-muted small">Define rangos: "de aquí a aquí es esta obra".</div>
-        </div>
-        <div class="text-end">
-          <div class="mb-2">
-            {% if digital_set and digital_set.segments.all|length %}
-              <span class="badge bg-success">{{ digital_set.segments.all|length }} segmento(s)</span>
-            {% elif digital_set %}
-              <span class="badge bg-warning text-dark">Pendiente</span>
-            {% else %}
-              <span class="badge bg-secondary">Bloqueado</span>
-            {% endif %}
-          </div>
-          {% if digital_set and digital_set.total_pages|default:0 > 0 or digital_set.pdf_path %}
-            <a class="btn btn-sm btn-primary" href="{% url 'digitalizacion:segmentar' obra.id %}">
-              Asignar segmentos
-            </a>
-          {% else %}
-            <span class="btn btn-sm btn-primary disabled" style="opacity: 0.5; cursor: not-allowed;">
-              Asignar segmentos
-            </span>
-          {% endif %}
-        </div>
-      </div>
+        {% with t=digital_set.total_pages|default:0 %}
+        {% if digital_set and digital_set.estado == "SEGMENTADO" %}
+          <li class="step-item done">
+            <div class="step-circle"><i class="bi bi-check-lg"></i></div>
+            <div class="step-body">
+              <div class="step-title">Segmentar obras</div>
+              <div class="step-desc">{{ digital_set.segments.all|length }} segmento(s) asignado(s).</div>
+              <div class="step-actions">
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'digitalizacion:segmentar' obra.id %}">
+                  <i class="bi bi-scissors me-1"></i>Editar segmentos
+                </a>
+              </div>
+            </div>
+          </li>
+        {% elif digital_set and t > 0 or digital_set.pdf_path %}
+          <li class="step-item active">
+            <div class="step-circle">3</div>
+            <div class="step-body">
+              <div class="step-title">Segmentar obras</div>
+              <div class="step-desc">Define rangos: "de aquí a aquí es esta obra".</div>
+              <div class="step-actions">
+                <a class="btn btn-sm btn-primary" href="{% url 'digitalizacion:segmentar' obra.id %}">
+                  <i class="bi bi-scissors me-1"></i>Asignar segmentos
+                </a>
+              </div>
+            </div>
+          </li>
+        {% else %}
+          <li class="step-item blocked">
+            <div class="step-circle">3</div>
+            <div class="step-body">
+              <div class="step-title">Segmentar obras</div>
+              <div class="step-desc">Primero importa imágenes o sube un PDF.</div>
+            </div>
+          </li>
+        {% endif %}
+        {% endwith %}
       {% endif %}
 
-      {# Paso final: Visualizar #}
-      <div class="list-group-item d-flex justify-content-between align-items-start">
-        <div class="me-3">
-          <div class="fw-semibold">👁️ {% if es_coleccion %}Paso 4{% else %}Paso 3{% endif %} · Visualizar</div>
-          <div class="text-muted small">
-            {% if es_coleccion %}
-              Colección completa y navegación por segmentos.
-            {% else %}
-              Ver documento digitalizado.
-            {% endif %}
-          </div>
-        </div>
-        <div class="text-end">
-          {% if digital_set and digital_set.total_pages|default:0 > 0 or digital_set.pdf_path %}
-            <a class="btn btn-sm btn-outline-primary" href="{% url 'digitalizacion:visor_digital' obra.id %}">
-              Ver documento
-            </a>
-          {% else %}
-            <span class="btn btn-sm btn-outline-primary" style="opacity: 0.5; cursor: not-allowed;">Ver documento</span>
-          {% endif %}
-
-          {% if es_coleccion %}
-            {% with segments=digital_set.segments.all %}
-              {% if segments|length == 1 %}
-                <a class="btn btn-sm btn-outline-secondary ms-2"
-                   href="{% url 'digitalizacion:visor_obra' segments.0.obra_id %}">
-                  Ver obra: {{ segments.0.obra.signatura_publica_display }}
-                </a>
-              {% elif segments|length > 1 %}
-                <div class="dropdown d-inline-block ms-2">
-                  <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
-                          type="button" data-bs-toggle="dropdown">
-                    Ver obra
-                  </button>
-                  <ul class="dropdown-menu">
-                    {% for seg in segments %}
-                      <li>
-                        <a class="dropdown-item" href="{% url 'digitalizacion:visor_obra' seg.obra_id %}">
-                          {{ seg.obra.signatura_publica_display }} — {{ seg.obra.titulo_principal }} (págs. {{ seg.start_page }}–{{ seg.end_page }})
-                        </a>
-                      </li>
-                    {% endfor %}
-                  </ul>
-                </div>
+      {# ───── PASO FINAL: Visualizar ───── #}
+      {% with t=digital_set.total_pages|default:0 step_n=4 %}
+      {% if not es_coleccion %}{% with step_n=3 %}{% endwith %}{% endif %}
+      {% if digital_set and t > 0 or digital_set.pdf_path %}
+        <li class="step-item done">
+          <div class="step-circle"><i class="bi bi-check-lg"></i></div>
+          <div class="step-body">
+            <div class="step-title">{% if es_coleccion %}Paso 4 · {% endif %}Visualizar</div>
+            <div class="step-desc">
+              {% if es_coleccion %}Colección completa y navegación por segmentos.{% else %}Ver documento digitalizado.{% endif %}
+            </div>
+            <div class="step-actions">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'digitalizacion:visor_digital' obra.id %}">
+                <i class="bi bi-eye me-1"></i>Ver documento
+              </a>
+              {% if es_coleccion %}
+                {% with segments=digital_set.segments.all %}
+                  {% if segments|length == 1 %}
+                    <a class="btn btn-sm btn-outline-secondary"
+                       href="{% url 'digitalizacion:visor_obra' segments.0.obra_id %}">
+                      <i class="bi bi-file-earmark-music me-1"></i>{{ segments.0.obra.signatura_publica_display }}
+                    </a>
+                  {% elif segments|length > 1 %}
+                    <div class="dropdown d-inline-block">
+                      <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-collection me-1"></i>Ver obra ({{ segments|length }})
+                      </button>
+                      <ul class="dropdown-menu">
+                        {% for seg in segments %}
+                          <li>
+                            <a class="dropdown-item" href="{% url 'digitalizacion:visor_obra' seg.obra_id %}">
+                              {{ seg.obra.signatura_publica_display }} — {{ seg.obra.titulo_principal }}
+                              <span class="text-muted small">(pp. {{ seg.start_page }}–{{ seg.end_page }})</span>
+                            </a>
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    </div>
+                  {% endif %}
+                {% endwith %}
               {% endif %}
-            {% endwith %}
-          {% endif %}
-        </div>
-      </div>
+            </div>
+          </div>
+        </li>
+      {% else %}
+        <li class="step-item blocked">
+          <div class="step-circle">{% if es_coleccion %}4{% else %}3{% endif %}</div>
+          <div class="step-body">
+            <div class="step-title">Visualizar</div>
+            <div class="step-desc">Disponible tras importar.</div>
+          </div>
+        </li>
+      {% endif %}
+      {% endwith %}
 
-    </div>
+    </ol>
   </div>
 </div>
 
 <div class="mt-3">
-  <a class="btn btn-outline-secondary" href="{% url 'digitalizacion:dashboard' %}">Seleccionar otra obra</a>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'digitalizacion:dashboard' %}">
+    <i class="bi bi-arrow-left me-1"></i>Seleccionar otra obra
+  </a>
 </div>
+
 {% endblock %}

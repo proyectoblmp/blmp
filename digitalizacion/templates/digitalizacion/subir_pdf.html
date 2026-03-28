@@ -2,57 +2,172 @@
 {% block title %}Subir PDF{% endblock %}
 {% block page_title %}Subir PDF{% endblock %}
 
+{% block extra_css %}
+<style>
+  .drop-zone {
+    border: 2px dashed #CBD5E1;
+    border-radius: 12px;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    background: #F8FAFC;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+  }
+  .drop-zone:hover,
+  .drop-zone.drag-over {
+    border-color: #2563EB;
+    background: #EFF6FF;
+  }
+  .drop-zone.has-file {
+    border-color: #22C55E;
+    background: #F0FDF4;
+  }
+  .drop-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+  .drop-zone .drop-icon {
+    font-size: 2.5rem;
+    color: #94A3B8;
+    transition: color .2s;
+  }
+  .drop-zone:hover .drop-icon,
+  .drop-zone.drag-over .drop-icon { color: #2563EB; }
+  .drop-zone.has-file .drop-icon { color: #22C55E; }
+  .file-name-display {
+    font-size: .85rem;
+    color: #1E293B;
+    font-weight: 600;
+    margin-top: .5rem;
+    word-break: break-all;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 
-<div class="card mb-3">
-  <div class="card-body">
-    <h5 class="mb-1">{{ obra.titulo_principal }}</h5>
+<div class="card mb-4 border-0 shadow-sm">
+  <div class="card-body py-3 px-4">
+    <h5 class="mb-1 fw-semibold">{{ obra.titulo_principal }}</h5>
     <div class="text-muted small">
       <strong>{{ obra.signatura_publica_display }}</strong>
       {% if obra.autor_publico_principal %} · {{ obra.autor_publico_principal }}{% endif %}
     </div>
     <div class="mt-2">
       {% if es_coleccion %}
-        <span class="badge bg-primary">Colección</span>
+        <span class="badge bg-primary"><i class="bi bi-collection me-1"></i>Colección</span>
       {% else %}
-        <span class="badge bg-info">Obra suelta</span>
+        <span class="badge bg-info"><i class="bi bi-file-earmark-music me-1"></i>Obra suelta</span>
       {% endif %}
     </div>
-    <div class="text-muted small mt-2">
-      Este PDF <strong>reemplaza o complementa</strong> las imágenes escaneadas. Se usa como fuente de visualización rápida (por ejemplo, en segmentación).
-    </div>
+    <p class="small text-muted mt-2 mb-0">
+      Este PDF <strong>reemplaza o complementa</strong> las imágenes escaneadas. Se usa como fuente de visualización rápida en el segmentador.
+    </p>
   </div>
 </div>
 
 {% if digital_set and digital_set.pdf_path %}
-  <div class="alert alert-info d-flex justify-content-between align-items-start">
+  <div class="alert alert-info d-flex justify-content-between align-items-start gap-3 mb-4">
     <div>
-      <div><strong>PDF actual:</strong> {{ digital_set.pdf_path }}</div>
-      {% if digital_set.pdf_total_pages %}<div><strong>Páginas detectadas:</strong> {{ digital_set.pdf_total_pages }}</div>{% endif %}
+      <div class="fw-semibold mb-1"><i class="bi bi-file-earmark-pdf me-1"></i>PDF actual cargado</div>
+      <div class="small text-muted font-monospace">{{ digital_set.pdf_path }}</div>
+      {% if digital_set.pdf_total_pages %}
+        <div class="small mt-1"><i class="bi bi-file-text me-1"></i>{{ digital_set.pdf_total_pages }} páginas detectadas</div>
+      {% endif %}
     </div>
     <form method="post" action="{% url 'digitalizacion:eliminar_pdf' obra.id %}"
           onsubmit="return confirm('¿Eliminar el PDF actual?');">
       {% csrf_token %}
-      <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar PDF</button>
+      <button type="submit" class="btn btn-sm btn-outline-danger flex-shrink-0">
+        <i class="bi bi-trash me-1"></i>Eliminar PDF
+      </button>
     </form>
   </div>
 {% endif %}
 
-<form method="post" enctype="multipart/form-data" class="card">
-  <div class="card-body">
-    {% csrf_token %}
+<form method="post" enctype="multipart/form-data" id="pdfForm">
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+      <label class="form-label fw-semibold mb-3">
+        <i class="bi bi-file-earmark-arrow-up me-1"></i>Seleccionar archivo PDF
+      </label>
 
-    <label class="form-label">Selecciona PDF</label>
-    <input type="file" name="pdf" accept="application/pdf" class="form-control" required>
-    <div class="form-text">Se recomienda un PDF multipágina del mismo documento que el TIFF maestro.</div>
+      <div class="drop-zone position-relative" id="dropZone">
+        <input type="file" name="pdf" accept="application/pdf" id="pdfInput" required>
+        <div class="drop-icon mb-2">
+          <i class="bi bi-cloud-arrow-up" id="dropIcon"></i>
+        </div>
+        <div class="fw-semibold text-muted" id="dropText">Arrastra el PDF aquí</div>
+        <div class="small text-muted mt-1">o haz clic para seleccionar</div>
+        <div class="file-name-display d-none" id="fileNameDisplay"></div>
+      </div>
 
-    <div class="d-flex gap-2 mt-3 flex-wrap">
-      <button class="btn btn-primary">Subir</button>
-      <a class="btn btn-outline-secondary" href="{% url 'digitalizacion:obra_home' obra.id %}">Volver a la guía</a>
+      <div class="form-text mt-2">
+        <i class="bi bi-info-circle me-1"></i>Se recomienda un PDF multipágina del mismo documento que el TIFF maestro.
+      </div>
+
+      <div class="d-flex gap-2 mt-4 flex-wrap">
+        <button class="btn btn-primary" type="submit" id="submitBtn">
+          <i class="bi bi-cloud-upload me-1"></i>Subir PDF
+        </button>
+        <a class="btn btn-outline-secondary" href="{% url 'digitalizacion:obra_home' obra.id %}">
+          <i class="bi bi-arrow-left me-1"></i>Volver a la guía
+        </a>
+      </div>
     </div>
-
-    <div class="mt-3 small text-muted">
-      Nota (MVP): al finalizar la carga, el sistema te enviará al visor. Luego vuelve a la guía con el botón Volver.</div>
   </div>
 </form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  const zone = document.getElementById('dropZone');
+  const input = document.getElementById('pdfInput');
+  const dropText = document.getElementById('dropText');
+  const dropIcon = document.getElementById('dropIcon');
+  const fileNameDisplay = document.getElementById('fileNameDisplay');
+  const submitBtn = document.getElementById('submitBtn');
+
+  function showFile(name) {
+    zone.classList.add('has-file');
+    dropIcon.className = 'bi bi-file-earmark-check';
+    dropText.textContent = 'Archivo listo para subir';
+    fileNameDisplay.textContent = name;
+    fileNameDisplay.classList.remove('d-none');
+  }
+
+  input.addEventListener('change', function() {
+    if (this.files[0]) showFile(this.files[0].name);
+  });
+
+  ['dragenter','dragover'].forEach(e => zone.addEventListener(e, ev => {
+    ev.preventDefault(); zone.classList.add('drag-over');
+  }));
+  ['dragleave','drop'].forEach(e => zone.addEventListener(e, ev => {
+    zone.classList.remove('drag-over');
+  }));
+  zone.addEventListener('drop', function(ev) {
+    ev.preventDefault();
+    const f = ev.dataTransfer.files[0];
+    if (f) {
+      // Assign to input via DataTransfer
+      const dt = new DataTransfer();
+      dt.items.add(f);
+      input.files = dt.files;
+      showFile(f.name);
+    }
+  });
+
+  document.getElementById('pdfForm').addEventListener('submit', function() {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Subiendo...';
+  });
+})();
+</script>
 {% endblock %}

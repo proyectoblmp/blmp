@@ -56,7 +56,7 @@
         </div>
         <iframe
           id="pdfViewer"
-          src="/media/{{ digital_set.pdf_path }}#page={{ start_page }}"
+          src="{{ MEDIA_URL }}{{ digital_set.pdf_path }}#page={{ start_page }}"
           style="width:100%;height:80vh;border:1px solid #ddd;">
         </iframe>
         <div class="form-text">
@@ -68,13 +68,14 @@
     <script>
       (function() {
         const iframe = document.getElementById('pdfViewer');
+        const MEDIA_URL = '{{ MEDIA_URL }}';
         const pdfPath = '{{ digital_set.pdf_path }}';
         const startPage = {{ start_page }};
 
         function setPageWithoutFragment() {
           if (iframe && startPage) {
             const basePath = pdfPath.split('#')[0];
-            iframe.src = '/media/' + basePath + '#page=' + startPage;
+            iframe.src = MEDIA_URL + basePath + '#page=' + startPage;
           }
         }
 
@@ -103,7 +104,7 @@
         {% for p in pages %}
           <div class="mb-3">
             <div class="small text-muted mb-1">p{{ p.page_number|stringformat:"03d" }}</div>
-            <img src="/media/{{ p.derivative_path }}" class="img-fluid border rounded">
+            <img src="{{ MEDIA_URL }}{{ p.derivative_path }}" class="img-fluid border rounded">
           </div>
         {% endfor %}
       </div>

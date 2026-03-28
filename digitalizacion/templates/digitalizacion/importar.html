@@ -3,25 +3,85 @@
 {% block title %}Importar imágenes{% endblock %}
 {% block page_title %}Importar imágenes{% endblock %}
 
+{% block extra_css %}
+<style>
+  .path-box {
+    background: #1E293B;
+    color: #93C5FD;
+    border-radius: 8px;
+    padding: .75rem 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: .85rem;
+    word-break: break-all;
+    position: relative;
+  }
+  .path-box .copy-btn {
+    position: absolute;
+    right: .6rem;
+    top: .6rem;
+    border: none;
+    background: rgba(255,255,255,.1);
+    color: #fff;
+    border-radius: 4px;
+    padding: .15rem .4rem;
+    font-size: .7rem;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .path-box .copy-btn:hover { background: rgba(255,255,255,.2); }
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    padding: .6rem 0;
+  }
+  .flow-step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #EFF6FF;
+    color: #2563EB;
+    font-weight: 700;
+    font-size: .8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .status-row {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .4rem 0;
+    border-bottom: 1px solid #F1F5F9;
+  }
+  .status-row:last-child { border-bottom: none; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="d-flex gap-2 mb-3">
-  <a class="btn btn-outline-secondary" href="{% url 'digitalizacion:obra_home' obra.id %}">Volver</a>
-  <a class="btn btn-outline-secondary" href="{% url 'digitalizacion:dashboard' %}">Dashboard</a>
-  <a class="btn btn-outline-primary" href="{% url 'digitalizacion:subir_pdf' obra.id %}">Subir PDF</a>
+
+<div class="d-flex gap-2 mb-3 flex-wrap">
+  <a class="btn btn-sm btn-outline-secondary" href="{% url 'digitalizacion:obra_home' obra.id %}">
+    <i class="bi bi-arrow-left me-1"></i>Volver a la guía
+  </a>
+  <a class="btn btn-sm btn-outline-primary" href="{% url 'digitalizacion:subir_pdf' obra.id %}">
+    <i class="bi bi-file-earmark-arrow-up me-1"></i>Subir PDF en su lugar
+  </a>
 </div>
 
-<div class="card mb-3">
-  <div class="card-body">
-    <h5 class="mb-1">{{ obra.titulo_principal }}</h5>
+<div class="card mb-3 border-0 shadow-sm">
+  <div class="card-body py-3 px-4">
+    <h5 class="mb-1 fw-semibold">{{ obra.titulo_principal }}</h5>
     <div class="text-muted small">
       <strong>{{ obra.signatura_publica_display }}</strong>
       {% if obra.autor_publico_principal %} · {{ obra.autor_publico_principal }}{% endif %}
     </div>
     <div class="mt-2">
       {% if es_coleccion %}
-        <span class="badge bg-primary">Colección</span>
+        <span class="badge bg-primary"><i class="bi bi-collection me-1"></i>Colección</span>
       {% else %}
-        <span class="badge bg-info">Obra suelta</span>
+        <span class="badge bg-info"><i class="bi bi-file-earmark-music me-1"></i>Obra suelta</span>
       {% endif %}
     </div>
   </div>
@@ -29,61 +89,168 @@
 
 {% if messages %}
   {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}">{% autoescape off %}{{ message }}{% endautoescape %}</div>
+    <div class="alert alert-{{ message.tags }} mb-3">
+      {% autoescape off %}{{ message }}{% endautoescape %}
+    </div>
   {% endfor %}
 {% endif %}
 
-<div class="card mb-3">
-  <div class="card-body">
-    <h6 class="mb-2">Cómo importar imágenes</h6>
-    <ol class="mb-2">
-      <li>Crea la carpeta <code class="bg-light px-2 py-1 rounded">{{ nombre_carpeta_inbox }}</code> dentro del INBOX.</li>
-      <li>Copia los archivos <strong>TIFF</strong> generados por el escáner.</li>
-      <li>Presiona <strong>Importar desde INBOX</strong>.</li>
-    </ol>
+<div class="row g-3 mb-3">
 
-    <div class="alert alert-info py-2 mb-2">
-      <div class="small"><strong>📁 Nombre de carpeta a crear:</strong></div>
-      <code class="fs-6">{{ nombre_carpeta_inbox }}</code>
-    </div>
+  {# ── Instrucciones ── #}
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body p-4">
+        <h6 class="fw-semibold mb-3">
+          <i class="bi bi-diagram-3 me-1 text-primary"></i>Cómo importar
+        </h6>
 
-    <div class="alert alert-warning py-2 mb-2">
-      <div class="small">
-        <strong>⚠️ Importante:</strong> Suba imágenes TIFF generadas por el escáner.
-        El sistema generará automáticamente JPG derivados para visualización web.
+        <div class="flow-step">
+          <div class="flow-step-num">1</div>
+          <div>
+            <div class="fw-semibold small">Crea la carpeta en el INBOX</div>
+            <div class="text-muted small mt-1">Nombre exacto a usar:</div>
+            <div class="mt-1 px-2 py-1 rounded fw-monospace small"
+                 style="background:#F1F5F9;color:#1E293B;font-family:monospace;">
+              {{ nombre_carpeta_inbox }}
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-step-num">2</div>
+          <div>
+            <div class="fw-semibold small">Copia los archivos TIFF del escáner</div>
+            <div class="text-muted small mt-1">Coloca los <code>.tif</code> / <code>.tiff</code> dentro de esa carpeta. El sistema los ordenará por nombre.</div>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-step-num">3</div>
+          <div>
+            <div class="fw-semibold small">Ejecuta la importación</div>
+            <div class="text-muted small mt-1">Presiona el botón <strong>Importar desde INBOX</strong>. El sistema copiará los TIFF al repositorio y generará JPG para el visor.</div>
+          </div>
+        </div>
+
+        <div class="alert alert-warning py-2 mt-3 mb-0 small">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i>
+          Usa imágenes <strong>TIFF sin comprimir</strong> generadas directamente por el escáner.
+          El sistema generará automáticamente los JPG derivados para web.
+        </div>
       </div>
     </div>
-
-    <div class="small text-muted mb-1">Ruta completa esperada:</div>
-    <pre class="mb-0 small">{{ inbox_path }}</pre>
   </div>
+
+  {# ── Rutas ── #}
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body p-4">
+        <h6 class="fw-semibold mb-3">
+          <i class="bi bi-folder2-open me-1 text-warning"></i>Rutas del servidor
+        </h6>
+
+        <div class="mb-3">
+          <div class="small text-muted mb-1 fw-semibold">
+            <i class="bi bi-inbox me-1"></i>INBOX (donde colocar los TIFF)
+          </div>
+          <div class="path-box">
+            <button class="copy-btn" onclick="copyPath(this, '{{ inbox_path|escapejs }}')">
+              <i class="bi bi-clipboard"></i>
+            </button>
+            {{ inbox_path }}
+          </div>
+        </div>
+
+        <div>
+          <div class="small text-muted mb-1 fw-semibold">
+            <i class="bi bi-archive me-1"></i>Repositorio (destino final)
+          </div>
+          <div class="path-box">
+            <button class="copy-btn" onclick="copyPath(this, '{{ repo_path|escapejs }}')">
+              <i class="bi bi-clipboard"></i>
+            </button>
+            {{ repo_path }}
+          </div>
+        </div>
+
+        <div class="mt-3 small text-muted">
+          <i class="bi bi-info-circle me-1"></i>
+          Estructura generada: <code>master/</code> (TIFF), <code>iiif/jpg/</code> (derivados web)
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<div class="card">
-  <div class="card-body">
-    <h6 class="mb-2">Estado</h6>
+{# ── Estado + Acción ── #}
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-4">
+    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
+      <div>
+        <h6 class="fw-semibold mb-3"><i class="bi bi-activity me-1"></i>Estado actual</h6>
+        {% if digital_set %}
+          <div class="status-row">
+            <i class="bi bi-circle-fill small" style="color:#22C55E;"></i>
+            <span class="small">Estado: <strong>{{ digital_set.estado }}</strong></span>
+          </div>
+          <div class="status-row">
+            <i class="bi bi-images small text-muted"></i>
+            <span class="small">Páginas TIFF registradas: <strong>{{ pages_count|default:0 }}</strong></span>
+          </div>
+          <div class="status-row">
+            <i class="bi bi-file-earmark-pdf small {% if digital_set.pdf_path %}text-success{% else %}text-muted{% endif %}"></i>
+            <span class="small">
+              PDF asociado:
+              {% if digital_set.pdf_path %}
+                <strong class="text-success">Sí</strong>
+                {% if digital_set.pdf_total_pages %}({{ digital_set.pdf_total_pages }} páginas){% endif %}
+              {% else %}
+                <span class="text-muted">No</span>
+              {% endif %}
+            </span>
+          </div>
+        {% else %}
+          <p class="text-muted small mb-0">
+            <i class="bi bi-hourglass me-1"></i>Aún no se han importado imágenes.
+          </p>
+        {% endif %}
+      </div>
 
-    {% if digital_set %}
-      <p class="mb-1"><strong>Estado:</strong> {{ digital_set.estado }}</p>
-      <p class="mb-1"><strong>Páginas registradas:</strong> {{ pages_count|default:0 }}</p>
-      {% if digital_set.pdf_path %}
-        <p class="mb-1"><strong>PDF asociado:</strong> Sí</p>
-      {% else %}
-        <p class="mb-1"><strong>PDF asociado:</strong> No</p>
-      {% endif %}
-    {% else %}
-      <p class="text-muted mb-0">Aún no se han importado imágenes.</p>
-    {% endif %}
-
-    <form method="post" class="mt-3">
-      {% csrf_token %}
-      <button class="btn btn-primary" type="submit">Importar desde INBOX</button>
-      <a class="btn btn-outline-secondary ms-2" href="{% url 'digitalizacion:obra_home' obra.id %}">Volver a la guía</a>
-    </form>
-
-    <div class="mt-3 small text-muted">
-      El sistema copiará los TIFF al repositorio y generará JPG derivados para el visor web.
+      <form method="post" id="importForm">
+        {% csrf_token %}
+        <button class="btn btn-primary" type="submit" id="importBtn">
+          <i class="bi bi-cloud-download me-1"></i>Importar desde INBOX
+        </button>
+        <div class="form-text text-center mt-1 small">
+          {% if pages_count > 0 %}
+            Re-importar sobrescribirá las páginas existentes.
+          {% else %}
+            Leerá todos los .tif del INBOX.
+          {% endif %}
+        </div>
+      </form>
     </div>
   </div>
 </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyPath(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check"></i>';
+    setTimeout(() => btn.innerHTML = orig, 1500);
+  });
+}
+
+document.getElementById('importForm')?.addEventListener('submit', function() {
+  const btn = document.getElementById('importBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Importando…';
+});
+</script>
 {% endblock %}

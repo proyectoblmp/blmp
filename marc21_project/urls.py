@@ -27,7 +27,14 @@ urlpatterns = [
     path("digitalizacion/", include("digitalizacion.urls")),
 ]
 
-# Servir archivos estáticos y media en desarrollo
+# Servir archivos estáticos y media
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+else:
+    # Producción: Django sirve media directamente (app interna, sin alto tráfico)
+    from django.views.static import serve
+    from django.urls import re_path
+    urlpatterns += [
+        re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
+    ]

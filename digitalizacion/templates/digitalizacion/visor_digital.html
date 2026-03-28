@@ -2,38 +2,74 @@
 {% block title %}Visor digital{% endblock %}
 {% block page_title %}Visor digital{% endblock %}
 
+{% block extra_css %}
+<style>
+  .viewer-toolbar {
+    background: #F8FAFC;
+    border-bottom: 1px solid #E2E8F0;
+    padding: .65rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    flex-wrap: wrap;
+  }
+  .viewer-wrap {
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .img-page-item {
+    transition: transform .15s;
+  }
+  .img-page-item:hover { transform: scale(1.01); }
+</style>
+{% endblock %}
+
 {% block content %}
 
-<div class="card mb-3">
-  <div class="card-body">
-    <h5 class="mb-1">{{ obra.titulo_principal }}</h5>
-    <div class="text-muted small">
-      <strong>{{ obra.signatura_publica_display }}</strong>
-      {% if obra.autor_publico_principal %} · {{ obra.autor_publico_principal }}{% endif %}
-    </div>
-    <div class="mt-2">
-      {% if es_coleccion %}
-        <span class="badge bg-primary">Colección</span>
-        <div class="text-muted small mt-2">
-          Este es el <strong>visor de colección</strong> (muestra <strong>todo</strong> el documento).
-          Para ver una <strong>obra</strong> por segmento, entra por <a href="{% url 'digitalizacion:segmentar' obra.id %}">Asignar segmentos</a>.
+<div class="card mb-3 border-0 shadow-sm">
+  <div class="card-body py-3 px-4">
+    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
+      <div>
+        <h5 class="mb-1 fw-semibold">{{ obra.titulo_principal }}</h5>
+        <div class="text-muted small">
+          <strong>{{ obra.signatura_publica_display }}</strong>
+          {% if obra.autor_publico_principal %} · {{ obra.autor_publico_principal }}{% endif %}
         </div>
-      {% else %}
-        <span class="badge bg-info">Obra suelta</span>
+        <div class="mt-2">
+          {% if es_coleccion %}
+            <span class="badge bg-primary"><i class="bi bi-collection me-1"></i>Colección</span>
+          {% else %}
+            <span class="badge bg-info"><i class="bi bi-file-earmark-music me-1"></i>Obra suelta</span>
+          {% endif %}
+        </div>
+      </div>
+      {% if es_coleccion %}
+        <div class="small text-muted text-end">
+          <i class="bi bi-info-circle me-1"></i>
+          Vista completa de la colección.<br>
+          Para navegar por obra, usa
+          <a href="{% url 'digitalizacion:segmentar' obra.id %}">Asignar segmentos</a>.
+        </div>
       {% endif %}
     </div>
   </div>
 </div>
 
 {% if es_coleccion and segments %}
-  <div class="card mb-3">
-    <div class="card-body">
-      <h6 class="mb-2">Obras (segmentos)</h6>
-      <div class="small text-muted mb-2">Accesos directos al visor por obra.</div>
+  <div class="card mb-3 border-0 shadow-sm">
+    <div class="card-body py-3 px-4">
+      <h6 class="fw-semibold mb-2 small text-uppercase text-muted">
+        <i class="bi bi-list-ul me-1"></i>Obras en esta colección
+      </h6>
       <div class="d-flex gap-2 flex-wrap">
         {% for s in segments %}
           <a class="btn btn-sm btn-outline-secondary" href="{% url 'digitalizacion:visor_obra' s.obra_id %}">
-            {{ s.obra.signatura_publica_display }} — {{ s.obra.titulo_principal }}{% if s.obra.autor_publico_principal %} · {{ s.obra.autor_publico_principal }}{% endif %} (págs. {{ s.start_page }}–{{ s.end_page }})
+            <i class="bi bi-file-earmark-music me-1"></i>
+            {{ s.obra.signatura_publica_display }}
+            {% if s.obra.titulo_principal %} — {{ s.obra.titulo_principal }}{% endif %}
+            <span class="text-muted ms-1">(pp. {{ s.start_page }}–{{ s.end_page }})</span>
           </a>
         {% endfor %}
       </div>
@@ -42,49 +78,81 @@
 {% endif %}
 
 {% if not digital_set %}
-  <div class="alert alert-warning">
-    No hay importación todavía.
-    <a href="{% url 'digitalizacion:importar' obra.id %}">Importar</a>
+  <div class="alert alert-warning d-flex align-items-center gap-2">
+    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+    <div>
+      No hay importación todavía.
+      <a href="{% url 'digitalizacion:importar' obra.id %}" class="fw-semibold ms-1">Importar ahora</a>
+    </div>
   </div>
 
 {% else %}
 
   {% if digital_set.pdf_path %}
-
-    <div class="card mb-3">
-      <div class="card-body">
-        <h6 class="mb-2">PDF (iframe)</h6>
-        <iframe
-        src="/media/{{ digital_set.pdf_path }}"
-        style="width:100%;height:80vh;border:1px solid #ddd;">
-      </iframe>
+    <div class="viewer-wrap shadow-sm mb-3">
+      <div class="viewer-toolbar">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-file-earmark-pdf text-danger"></i>
+          <span class="fw-semibold small">PDF</span>
+          {% if digital_set.pdf_total_pages %}
+            <span class="text-muted small">{{ digital_set.pdf_total_pages }} páginas</span>
+          {% endif %}
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <a class="btn btn-sm btn-outline-secondary"
+             href="{{ MEDIA_URL }}{{ digital_set.pdf_path }}"
+             download
+             title="Descargar PDF">
+            <i class="bi bi-download me-1"></i>Descargar
+          </a>
+        </div>
       </div>
+      <iframe
+        src="{{ MEDIA_URL }}{{ digital_set.pdf_path }}"
+        style="width:100%;height:82vh;border:none;display:block;"
+        title="Visor PDF — {{ obra.titulo_principal }}">
+      </iframe>
     </div>
 
   {% else %}
 
-    <div class="card">
-      <div class="card-body">
-        <h6 class="mb-3">Imágenes (JPG derivados)</h6>
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <h6 class="fw-semibold mb-3 d-flex align-items-center gap-2">
+          <i class="bi bi-images text-primary"></i>
+          Imágenes digitalizadas
+          {% if pages %}<span class="badge bg-light text-muted fw-normal">{{ pages|length }} página(s)</span>{% endif %}
+        </h6>
 
         {% for p in pages %}
           {% if p.derivative_path %}
-            <div class="mb-3">
-              <div class="small text-muted mb-1">p{{ p.page_number|stringformat:"03d" }}</div>
-              <img src="/media/{{ p.derivative_path }}" class="img-fluid border rounded">
+            <div class="img-page-item mb-4">
+              <div class="small text-muted mb-1">
+                <i class="bi bi-file-image me-1"></i>p{{ p.page_number|stringformat:"03d" }}
+              </div>
+              <img src="{{ MEDIA_URL }}{{ p.derivative_path }}"
+                   class="img-fluid border rounded shadow-sm"
+                   loading="lazy"
+                   alt="Página {{ p.page_number }}">
             </div>
           {% else %}
-            <div class="alert alert-warning">
-              p{{ p.page_number|stringformat:"03d" }} sin derivado JPG.
+            <div class="alert alert-warning py-2 mb-3">
+              <i class="bi bi-exclamation-triangle me-1"></i>
+              p{{ p.page_number|stringformat:"03d" }} — sin derivado JPG disponible.
             </div>
           {% endif %}
         {% endfor %}
       </div>
     </div>
-  {% endif %}
 
   {% endif %}
-  <div class="d-flex gap-2 mb-3">
-    <a class="btn btn-outline-secondary" href="{% url 'digitalizacion:obra_home' obra.id %}">Volver a la guía</a>
-  </div>
+
+{% endif %}
+
+<div class="d-flex gap-2 mt-3">
+  <a class="btn btn-sm btn-outline-secondary" href="{% url 'digitalizacion:obra_home' obra.id %}">
+    <i class="bi bi-arrow-left me-1"></i>Volver a la guía
+  </a>
+</div>
+
 {% endblock %}

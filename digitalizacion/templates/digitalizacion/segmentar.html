@@ -3,181 +3,283 @@
 {% block title %}Asignar segmentos{% endblock %}
 {% block page_title %}Asignar segmentos{% endblock %}
 
+{% block extra_css %}
+<style>
+  .segment-panel {
+    position: sticky;
+    top: 1rem;
+  }
+  .range-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .3rem .8rem;
+    border-radius: 2rem;
+    background: #EFF6FF;
+    color: #1D4ED8;
+    font-size: .82rem;
+    font-weight: 600;
+    border: 1px solid #BFDBFE;
+    transition: all .15s;
+  }
+  .range-badge.active {
+    background: #2563EB;
+    color: #fff;
+    border-color: #2563EB;
+  }
+  .page-count-pill {
+    font-size: .75rem;
+    background: #F0FDF4;
+    color: #166534;
+    border: 1px solid #BBF7D0;
+    padding: .15rem .55rem;
+    border-radius: 1rem;
+    font-weight: 600;
+  }
+  .viewer-card {
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .viewer-toolbar {
+    background: #F8FAFC;
+    border-bottom: 1px solid #E2E8F0;
+    padding: .6rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+  }
+  .segment-list-item {
+    transition: background .12s;
+  }
+  .segment-list-item:hover { background: #F8FAFC; }
+</style>
+{% endblock %}
+
 {% block content %}
 
-<div class="card mb-3">
-  <div class="card-body">
-    <h5 class="mb-1">{{ obra.titulo_principal }}</h5>
-    <div class="text-muted small">Colección (signatura): <strong>{{ obra.signatura_publica_display }}</strong></div>
+<div class="card mb-3 border-0 shadow-sm">
+  <div class="card-body py-3 px-4">
+    <h5 class="mb-1 fw-semibold">{{ obra.titulo_principal }}</h5>
+    <div class="text-muted small">
+      Colección · <strong>{{ obra.signatura_publica_display }}</strong>
+    </div>
   </div>
 </div>
 
-
-
 {% if not digital_set %}
-  <div class="alert alert-warning">
-    Primero debes <a href="{% url 'digitalizacion:importar' obra.id %}">importar el escaneo</a>.
+  <div class="alert alert-warning d-flex align-items-center gap-2">
+    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+    <div>Primero debes <a href="{% url 'digitalizacion:importar' obra.id %}" class="fw-semibold">importar el escaneo</a> para poder segmentar.</div>
   </div>
 {% else %}
 
-
 <div class="row g-3">
 
+  {# ── Panel izquierdo: formulario + lista ── #}
+  <div class="col-lg-5">
+    <div class="segment-panel">
 
-  <div class="col-lg-5" data-segmented-ids="{% for s in segments %}{{ s.obra_id }}{% if not forloop.last %},{% endif %}{% endfor %}">
-    <div class="card mb-3">
-      <div class="card-body">
-        <h6 class="mb-1">Crear segmento</h6>
-        <p class="text-muted small mb-3">Objetivo: ver el documento y decir “de aquí a aquí es esta obra”.</p>
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body p-4">
+          <h6 class="fw-semibold mb-1">Crear segmento</h6>
+          <p class="text-muted small mb-3">Objetivo: ver el documento y decir <em>"de aquí a aquí es esta obra"</em>.</p>
 
-        <form method="post" class="mt-2" id="segmentForm">
-          {% csrf_token %}
+          <form method="post" id="segmentForm"
+                data-segmented-ids="{% for s in segments %}{{ s.obra_id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+            {% csrf_token %}
 
-          <div class="mb-2">
-            <label class="form-label">Buscar obra</label>
-
-            <input id="obraSearch" class="form-control" placeholder="Escribe título, número de control o signatura..." autocomplete="off">
-            <input type="hidden" name="obra_id" id="obraIdHidden" required>
-
-            <div class="list-group mt-2" id="obraResults" style="display:none;"></div>
-
-            <div class="form-text">Selecciona una obra de la lista para completar el ID.</div>
-          </div>
-
-          <div class="row">
-            <div class="col">
-              <label class="form-label">Inicio</label>
-              <input class="form-control" id="startPage" name="start_page" type="number" min="1" max="{{ max_pages }}" required>
+            <div class="mb-3">
+              <label class="form-label fw-semibold small" for="obraSearch">Buscar obra</label>
+              <input id="obraSearch" class="form-control" placeholder="Título, número de control o signatura…" autocomplete="off">
+              <input type="hidden" name="obra_id" id="obraIdHidden" required>
+              <div class="list-group mt-1 shadow-sm" id="obraResults" style="display:none;z-index:100;position:relative;"></div>
+              <div class="form-text">Selecciona una obra de la lista.</div>
             </div>
-            <div class="col">
-              <label class="form-label">Fin</label>
-              <input class="form-control" id="endPage" name="end_page" type="number" min="1" max="{{ max_pages }}" required>
-            </div>
-          </div>
 
-          <div class="mt-2">
-            <label class="form-label">Tipo</label>
-            <select class="form-select" name="tipo">
-              <option value="OBRA">Obra</option>
-              <option value="NOTAS">Notas</option>
-              <option value="ANEXO">Anexo</option>
-              <option value="EXCLUIDO">Excluido</option>
-            </select>
-          </div>
-
-          <div class="d-flex gap-2 mt-3 flex-wrap">
-            <button class="btn btn-primary" type="submit">Guardar segmento</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-body">
-        <h6 class="mb-2">Segmentos existentes</h6>
-
-        {% if segments %}
-        <ul class="list-group">
-          {% for s in segments %}
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            <div class="me-3">
-              <a class="fw-semibold text-decoration-none" href="{% url 'digitalizacion:visor_obra' s.obra_id %}">
-                {{ s.obra.signatura_publica_display }} — {{ s.obra.titulo_principal }}
-              </a>
-              <div class="small text-muted">
-                {% if s.obra.autor_publico_principal %}{{ s.obra.autor_publico_principal }} · {% endif %}Págs. {{ s.start_page }}–{{ s.end_page }} · {{ s.tipo }}
+            <div class="row g-2 mb-3">
+              <div class="col">
+                <label class="form-label fw-semibold small" for="startPage">Página inicio</label>
+                <input class="form-control" id="startPage" name="start_page" type="number" min="1" max="{{ max_pages }}" required placeholder="1">
+              </div>
+              <div class="col">
+                <label class="form-label fw-semibold small" for="endPage">Página fin</label>
+                <input class="form-control" id="endPage" name="end_page" type="number" min="1" max="{{ max_pages }}" required placeholder="{{ max_pages }}">
               </div>
             </div>
-            <form method="post" action="{% url 'digitalizacion:segmento_eliminar' s.id %}">
-              {% csrf_token %}
-              <button class="btn btn-sm btn-outline-danger">Eliminar</button>
-            </form>
-          </li>
-          {% endfor %}
-        </ul>
-        {% else %}
-        <p class="text-muted mb-0">Aún no hay segmentos.</p>
-        {% endif %}
+
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="range-badge" id="rangeBadge">
+                <i class="bi bi-arrows-expand"></i>
+                <span id="rangeLabel">Selecciona un rango</span>
+              </span>
+              <span class="page-count-pill d-none" id="pageCount"></span>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold small">Tipo</label>
+              <select class="form-select" name="tipo">
+                <option value="OBRA">Obra</option>
+                <option value="NOTAS">Notas</option>
+                <option value="ANEXO">Anexo</option>
+                <option value="EXCLUIDO">Excluido</option>
+              </select>
+            </div>
+
+            <button class="btn btn-primary w-100" type="submit">
+              <i class="bi bi-plus-circle me-1"></i>Guardar segmento
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <h6 class="fw-semibold mb-3">
+            Segmentos existentes
+            {% if segments %}
+              <span class="badge bg-primary ms-1">{{ segments|length }}</span>
+            {% endif %}
+          </h6>
+
+          {% if segments %}
+          <div class="list-group list-group-flush">
+            {% for s in segments %}
+            <div class="list-group-item segment-list-item px-0 py-2 d-flex justify-content-between align-items-start gap-2">
+              <div class="min-w-0 flex-grow-1">
+                <a class="fw-semibold small text-decoration-none d-block text-truncate"
+                   href="{% url 'digitalizacion:visor_obra' s.obra_id %}">
+                  {{ s.obra.signatura_publica_display }} — {{ s.obra.titulo_principal }}
+                </a>
+                <div class="small text-muted">
+                  {% if s.obra.autor_publico_principal %}{{ s.obra.autor_publico_principal }} · {% endif %}
+                  <i class="bi bi-file-text me-1"></i>pp. {{ s.start_page }}–{{ s.end_page }}
+                  <span class="badge ms-1 px-2" style="background:#F1F5F9;color:#64748B;font-size:.7rem;">{{ s.tipo }}</span>
+                </div>
+              </div>
+              <form method="post" action="{% url 'digitalizacion:segmento_eliminar' s.id %}"
+                    onsubmit="return confirm('¿Eliminar este segmento?');" class="flex-shrink-0">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-outline-danger" title="Eliminar segmento">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-muted small mb-0">
+            <i class="bi bi-info-circle me-1"></i>Aún no hay segmentos creados.
+          </p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="mt-3">
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'digitalizacion:obra_home' obra.id %}">
+          <i class="bi bi-arrow-left me-1"></i>Volver a la guía
+        </a>
       </div>
     </div>
-    <a class="btn btn-outline-secondary" href="{% url 'digitalizacion:obra_home' obra.id %}">Volver a la guía</a>
   </div>
 
-
+  {# ── Panel derecho: visor ── #}
   <div class="col-lg-7">
-    <div class="card" data-has-pdf="{% if digital_set.pdf_path %}1{% else %}0{% endif %}">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-          <div>
-            <h6 class="mb-1">Visor</h6>
-            <div class="text-muted small">Feedback: <span id="rangeLabel">Selecciona un rango</span></div>
-          </div>
-          <div class="small text-muted">
-            {% if digital_set.pdf_path %}
-              Fuente: PDF
-            {% else %}
-              Fuente: JPG derivados
+    <div class="viewer-card shadow-sm">
+      <div class="viewer-toolbar">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-eye text-muted"></i>
+          <span class="fw-semibold small">Visor</span>
+          {% if digital_set.pdf_path %}
+            <span class="badge" style="background:#EFF6FF;color:#1D4ED8;font-size:.72rem;">PDF</span>
+            {% if digital_set.pdf_total_pages %}
+              <span class="text-muted small">{{ digital_set.pdf_total_pages }} páginas</span>
             {% endif %}
-          </div>
+          {% else %}
+            <span class="badge" style="background:#F0FDF4;color:#166534;font-size:.72rem;">JPG</span>
+          {% endif %}
         </div>
-
-        {% if digital_set.pdf_path %}
-          <iframe
-            id="pdfViewer"
-            src="/media/{{ digital_set.pdf_path }}"
-            style="width:100%;height:80vh;border:1px solid #ddd;"
-            loading="lazy"></iframe>
-        {% else %}
-          <div class="alert alert-info mt-3 mb-0">
-            No hay PDF asociado. Aquí se mostrarán miniaturas JPG del rango seleccionado.
-          </div>
-          <div id="thumbContainer" class="mt-3"></div>
-        {% endif %}
+        <div class="small text-muted" id="viewerFeedback">Selecciona un rango para navegar</div>
       </div>
+
+      {% if digital_set.pdf_path %}
+        <iframe
+          id="pdfViewer"
+          src="{{ MEDIA_URL }}{{ digital_set.pdf_path }}"
+          style="width:100%;height:87vh;border:none;display:block;"
+          loading="lazy"
+          title="Visor de documento PDF"></iframe>
+      {% else %}
+        <div class="p-4">
+          <div class="alert alert-info mb-3">
+            <i class="bi bi-info-circle me-1"></i>No hay PDF asociado. Mostrando miniaturas JPG del rango seleccionado.
+          </div>
+          <div id="thumbContainer"></div>
+        </div>
+      {% endif %}
     </div>
   </div>
 
 </div>
 
+{% endif %}
 
+{% block extra_js %}
 <script>
-  (function () {
-    const start = document.getElementById('startPage');
-    const end = document.getElementById('endPage');
-    const label = document.getElementById('rangeLabel');
-    const iframe = document.getElementById('pdfViewer');
+(function () {
+  const startInput = document.getElementById('startPage');
+  const endInput = document.getElementById('endPage');
+  const rangeBadge = document.getElementById('rangeBadge');
+  const rangeLabel = document.getElementById('rangeLabel');
+  const pageCount = document.getElementById('pageCount');
+  const viewerFeedback = document.getElementById('viewerFeedback');
+  const iframe = document.getElementById('pdfViewer');
 
-    function clamp(n, min, max) {
-      n = parseInt(n, 10);
-      if (Number.isNaN(n)) return null;
-      return Math.max(min, Math.min(max, n));
-    }
+  function clamp(n, min, max) {
+    n = parseInt(n, 10);
+    if (Number.isNaN(n)) return null;
+    return Math.max(min, Math.min(max, n));
+  }
 
-    function update() {
-      const min = 1;
-      const max = parseInt('{{ max_pages|default:"999999" }}', 10);
-      const s = clamp(start?.value, min, max);
-      const e = clamp(end?.value, min, max);
+  function update() {
+    const max = parseInt('{{ max_pages|default:"999999" }}', 10);
+    const s = clamp(startInput?.value, 1, max);
+    const e = clamp(endInput?.value, 1, max);
 
-      if (s && e) label.textContent = `Viendo páginas ${s}–${e}`;
-      else if (s) label.textContent = `Viendo página ${s}`;
-      else label.textContent = 'Selecciona un rango';
-
+    if (s && e && s <= e) {
+      const count = e - s + 1;
+      rangeLabel.textContent = `Páginas ${s}–${e}`;
+      rangeBadge.classList.add('active');
+      pageCount.textContent = `${count} página${count !== 1 ? 's' : ''}`;
+      pageCount.classList.remove('d-none');
+      viewerFeedback && (viewerFeedback.textContent = `Mostrando páginas ${s}–${e}`);
       if (iframe && s) {
-        // PDF.js / visor nativo: usar ancla de página
         const base = iframe.getAttribute('src').split('#')[0];
         iframe.setAttribute('src', `${base}#page=${s}`);
       }
+    } else if (s) {
+      rangeLabel.textContent = `Página ${s}`;
+      rangeBadge.classList.add('active');
+      pageCount.classList.add('d-none');
+      if (iframe) {
+        const base = iframe.getAttribute('src').split('#')[0];
+        iframe.setAttribute('src', `${base}#page=${s}`);
+      }
+    } else {
+      rangeLabel.textContent = 'Selecciona un rango';
+      rangeBadge.classList.remove('active');
+      pageCount.classList.add('d-none');
+      viewerFeedback && (viewerFeedback.textContent = 'Selecciona un rango para navegar');
     }
+  }
 
-    start?.addEventListener('input', update);
-    end?.addEventListener('input', update);
-    update();
-  })();
+  startInput?.addEventListener('input', update);
+  endInput?.addEventListener('input', update);
+  update();
+})();
 </script>
-
-{% endif %}
 <script src="{% static 'digitalizacion/js/segmentar.js' %}"></script>
-
 {% endblock %}
 
+{% endblock %}
