@@ -90,6 +90,7 @@
 {% endif %}
 
 <form method="post" enctype="multipart/form-data" id="pdfForm">
+  {% csrf_token %}
   <div class="card border-0 shadow-sm">
     <div class="card-body p-4">
       <label class="form-label fw-semibold mb-3">
