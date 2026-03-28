@@ -31,7 +31,12 @@ DEBUG = os.environ.get("DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = ["*", "testserver", "localhost", "127.0.0.1", ".ngrok-free.app", ".ngrok-free.dev"]
 
-CSRF_TRUSTED_ORIGINS = ["https://*.ngrok-free.app", "https://*.ngrok-free.dev"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.ngrok-free.app",
+    "https://*.ngrok-free.dev",
+    "https://blmp.unl.edu.ec",
+    "http://blmp.unl.edu.ec",
+]
 
 # Application definition
 
