@@ -1584,7 +1584,7 @@ function CanvasClass() {
 
     // 1ª línea auxiliar (más cercana al pentagrama)
     if (
-      (upOrDown === -1 && yPosition <= 5) || // arriba
+      (upOrDown === -1 && yPosition <= 3) || // arriba
       (upOrDown === 1 && yPosition >= 15) // abajo
     ) {
       pixelsToAdd = context.stepY * 2 * 3 * upOrDown + context.stepY / 2;
