@@ -74,15 +74,24 @@ $PYTHON manage.py collectstatic --noinput --clear
 
 # ── 5. Verificar configuración Django ─────────────────────────
 log "Verificando configuración..."
-$PYTHON manage.py check --deploy 2>&1 | grep -E "^(WARNINGS|ERRORS|System)" || true
+$PYTHON manage.py check --deploy 2>&1 || true
 
 # ── 6. Reiniciar servicio ──────────────────────────────────────
+# Restart completo para que todos los workers carguen el nuevo manifest
+# de ManifestStaticFilesStorage y sirvan los hashes nuevos de los estáticos.
 log "Reiniciando servicio $SERVICE..."
-kill -HUP $(pgrep -f blmp_web_gunicorn) 2>/dev/null && log "Gunicorn reiniciado (HUP)." || warn "No se pudo enviar HUP — el servicio systemd lo levantará automáticamente."
-sleep 2
+if sudo systemctl restart "$SERVICE" 2>/dev/null; then
+  log "Gunicorn reiniciado (systemctl sudo)."
+elif systemctl --user restart "$SERVICE" 2>/dev/null; then
+  log "Gunicorn reiniciado (systemctl --user)."
+else
+  warn "systemctl falló — intentando con HUP como último recurso..."
+  kill -HUP $(pgrep -f blmp_web_gunicorn) 2>/dev/null || true
+fi
+sleep 5
 
 # Verificar que levantó correctamente
-if pgrep -f blmp_web_gunicorn > /dev/null; then
+if systemctl --user is-active --quiet "$SERVICE" 2>/dev/null || pgrep -f blmp_web_gunicorn > /dev/null; then
   log "Gunicorn activo."
 else
   error "Gunicorn no está corriendo. Ver: tail -50 /var/log/blmp/gunicorn_web_error.log"
