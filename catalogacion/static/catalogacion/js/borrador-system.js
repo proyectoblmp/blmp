@@ -122,6 +122,7 @@
 
     for (const [name, value] of formData.entries()) {
       if (!name || name.includes("NaN")) continue;
+      if (name === "csrfmiddlewaretoken") continue;
 
       const strValue = String(value).trim();
 
@@ -311,6 +312,8 @@
    */
   function restaurarCamposSimples(campos) {
     for (const [name, value] of Object.entries(campos)) {
+      if (name === "csrfmiddlewaretoken") continue;
+
       // Ignorar management forms de formsets
       if (name.includes("-TOTAL_FORMS") || name.includes("-INITIAL_FORMS")) {
         continue;
@@ -1049,6 +1052,13 @@
 
       form.addEventListener("input", onFormChange);
       form.addEventListener("change", onFormChange);
+      form.addEventListener("submit", () => {
+        const freshToken = getCsrfToken();
+        const csrfInput = form.querySelector('[name="csrfmiddlewaretoken"]');
+        if (csrfInput && freshToken) {
+          csrfInput.value = freshToken;
+        }
+      });
     };
 
     esperarFormularioListo();
