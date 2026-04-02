@@ -43,6 +43,120 @@ from usuarios.mixins import CatalogadorRequiredMixin
 logger = logging.getLogger("catalogacion")
 
 
+FORMSET_ERROR_LABELS = {
+    "notas_generales": "Nota general 500",
+    "contenidos_505": "Contenido 505",
+    "contenidos": "Contenido 505",
+    "sumarios_520": "Sumario 520",
+    "sumarios": "Sumario 520",
+    "datos_biograficos_545": "Datos biograficos 545",
+    "materias_650": "Materia 650",
+    "materias_genero_655": "Genero/forma 655",
+    "entidades_relacionadas_710": "Entidad relacionada 710",
+    "entidades_710": "Entidad relacionada 710",
+    "enlaces_unidad_constituyente_774": "Enlace 774",
+    "enlaces_774": "Enlace 774",
+    "enlaces_documento_fuente_773": "Enlace 773",
+    "enlaces_773": "Enlace 773",
+    "otras_relaciones_787": "Relacion 787",
+    "relaciones_787": "Relacion 787",
+    "nombres_relacionados_700": "Nombre relacionado 700",
+    "produccion_publicacion": "Produccion/publicacion 264",
+    "medios_interpretacion": "Medio de interpretacion 382",
+    "menciones_serie_490": "Mencion de serie 490",
+    "ubicaciones_852": "Ubicacion 852",
+    "disponibles_856": "Enlace 856",
+}
+
+
+def _es_error_tecnico_ignorable(form, field, err):
+    """
+    Oculta errores internos de inline formsets que no ayudan al usuario,
+    especialmente el campo oculto `id` en filas nuevas/clonadas.
+    """
+    if field not in {"id", "obra"}:
+        return False
+
+    texto = str(err).strip().lower()
+    if "required" not in texto:
+        return False
+
+    bound_field = form.fields.get(field)
+    return bool(bound_field and getattr(bound_field.widget, "is_hidden", False))
+
+
+def _label_formset_error(key):
+    return FORMSET_ERROR_LABELS.get(key, key.replace("_", " ").capitalize())
+
+
+def _label_campo_error(form, field):
+    if field == "__all__":
+        return None
+
+    bound_field = form.fields.get(field)
+    if not bound_field:
+        return field
+
+    return bound_field.label or field.replace("_", " ").capitalize()
+
+
+def _traducir_error_formset(key, err):
+    texto = str(err)
+    if "already exists" in texto:
+        if "incipit" in key.lower():
+            return (
+                "Numeracion duplicada "
+                "(la combinacion obra.movimiento.pasaje debe ser unica en cada incipit)."
+            )
+        return "Registro duplicado: revise que no haya entradas repetidas."
+    if texto == "This field is required.":
+        return "Este campo es obligatorio."
+    return texto
+
+
+def _construir_resumen_errores_formsets(formsets):
+    errores_detallados = []
+
+    for key, formset in formsets.items():
+        if key == "disponibles_856":
+            continue
+
+        if formset.is_valid():
+            continue
+
+        etiqueta_formset = _label_formset_error(key)
+
+        for i, frm in enumerate(formset.forms):
+            if not frm.errors:
+                continue
+
+            for field, errs in frm.errors.items():
+                for err in errs:
+                    if _es_error_tecnico_ignorable(frm, field, err):
+                        continue
+
+                    err_texto = _traducir_error_formset(key, err)
+
+                    if field == "__all__":
+                        errores_detallados.append(
+                            f"{etiqueta_formset} #{i + 1}: {err_texto}"
+                        )
+                        continue
+
+                    etiqueta_campo = _label_campo_error(frm, field)
+                    errores_detallados.append(
+                        f"{etiqueta_formset} #{i + 1}, campo '{etiqueta_campo}': {err_texto}"
+                    )
+
+        if formset.non_form_errors():
+            for err in formset.non_form_errors():
+                errores_detallados.append(
+                    f"{etiqueta_formset}: {_traducir_error_formset(key, err)}"
+                )
+
+    return errores_detallados
+
+
 def limpiar_archivos_obra(obra):
     """
     Elimina todos los archivos media asociados a una obra.
@@ -317,35 +431,7 @@ class CrearObraView(CatalogadorRequiredMixin, ObraFormsetMixin, CreateView):
         formsets_validos, formsets = self._validar_formsets(context)
 
         if not formsets_validos:
-            # Extraer errores específicos de cada formset
-            errores_detallados = []
-            for key, formset in formsets.items():
-                # Saltar 856 que usa validación custom (no Django is_valid)
-                if key == "disponibles_856":
-                    continue
-                if not formset.is_valid():
-                    for i, frm in enumerate(formset.forms):
-                        if frm.errors:
-                            for field, errs in frm.errors.items():
-                                for err in errs:
-                                    # Traducir campo __all__ y mensajes técnicos
-                                    if field == "__all__":
-                                        if "already exists" in str(err):
-                                            # Error de unicidad - explicar mejor según el formset
-                                            if "incipit" in key.lower():
-                                                err = "Numeración duplicada (la combinación obra.movimiento.pasaje debe ser única para cada íncipit)"
-                                            else:
-                                                err = "Registro duplicado - verifique que no haya entradas repetidas con los mismos datos"
-                                        errores_detallados.append(
-                                            f"{key} #{i + 1}: {err}"
-                                        )
-                                    else:
-                                        errores_detallados.append(
-                                            f"{key} #{i + 1}, campo '{field}': {err}"
-                                        )
-                    if formset.non_form_errors():
-                        for err in formset.non_form_errors():
-                            errores_detallados.append(f"{key}: {err}")
+            errores_detallados = _construir_resumen_errores_formsets(formsets)
 
             if errores_detallados:
                 messages.error(
@@ -531,35 +617,7 @@ class EditarObraView(CatalogadorRequiredMixin, ObraFormsetMixin, UpdateView):
         formsets_validos, formsets = self._validar_formsets(context)
 
         if not formsets_validos:
-            # Extraer errores específicos de cada formset
-            errores_detallados = []
-            for key, formset in formsets.items():
-                # Saltar 856 que usa validación custom (no Django is_valid)
-                if key == "disponibles_856":
-                    continue
-                if not formset.is_valid():
-                    for i, frm in enumerate(formset.forms):
-                        if frm.errors:
-                            for field, errs in frm.errors.items():
-                                for err in errs:
-                                    # Traducir campo __all__ y mensajes técnicos
-                                    if field == "__all__":
-                                        if "already exists" in str(err):
-                                            # Error de unicidad - explicar mejor según el formset
-                                            if "incipit" in key.lower():
-                                                err = "Numeración duplicada (la combinación obra.movimiento.pasaje debe ser única para cada íncipit)"
-                                            else:
-                                                err = "Registro duplicado - verifique que no haya entradas repetidas con los mismos datos"
-                                        errores_detallados.append(
-                                            f"{key} #{i + 1}: {err}"
-                                        )
-                                    else:
-                                        errores_detallados.append(
-                                            f"{key} #{i + 1}, campo '{field}': {err}"
-                                        )
-                    if formset.non_form_errors():
-                        for err in formset.non_form_errors():
-                            errores_detallados.append(f"{key}: {err}")
+            errores_detallados = _construir_resumen_errores_formsets(formsets)
 
             if errores_detallados:
                 messages.error(
