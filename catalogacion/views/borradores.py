@@ -3,9 +3,11 @@ Vistas AJAX para gestión de borradores de obras MARC21
 """
 
 import json
+from collections import Counter
 
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 from django.views.decorators.http import require_http_methods
 
 from catalogacion.models import BorradorObra
@@ -431,8 +433,10 @@ class ListaBorradoresView(CatalogadorRequiredMixin, ListView):
 
     def get_queryset(self):
         """Obtener solo borradores activos del usuario, ordenados por fecha de modificación"""
-        queryset = BorradorObra.objects.filter(estado="activo").order_by(
-            "-fecha_modificacion"
+        queryset = (
+            BorradorObra.objects.filter(estado="activo")
+            .select_related("usuario", "obra_objetivo")
+            .order_by("-fecha_modificacion")
         )
 
         # Filtrar por el usuario autenticado (solo sus borradores)
@@ -444,7 +448,14 @@ class ListaBorradoresView(CatalogadorRequiredMixin, ListView):
         # Filtrar por búsqueda si hay query
         q = self.request.GET.get("q")
         if q:
-            queryset = queryset.filter(titulo_temporal__icontains=q)
+            queryset = queryset.filter(
+                Q(titulo_temporal__icontains=q)
+                | Q(num_control_temporal__icontains=q)
+                | Q(obra_objetivo__titulo_principal__icontains=q)
+                | Q(obra_objetivo__num_control__icontains=q)
+                | Q(usuario__email__icontains=q)
+                | Q(usuario__nombre_completo__icontains=q)
+            )
 
         return queryset
 
@@ -463,6 +474,15 @@ class ListaBorradoresView(CatalogadorRequiredMixin, ListView):
             "Existencias",
             "Administración",
         ]
+        borradores = context.get("borradores")
+        if borradores is not None:
+            duplicate_counts = Counter(
+                borrador.clave_similitud for borrador in borradores
+            )
+            for borrador in borradores:
+                borrador.duplicados_similares = duplicate_counts[
+                    borrador.clave_similitud
+                ]
         return context
 
 

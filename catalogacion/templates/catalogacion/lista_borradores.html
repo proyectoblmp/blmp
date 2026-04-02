@@ -36,6 +36,33 @@
         font-size: 0.8125rem;
         color: var(--admin-text-light);
     }
+    .borrador-meta {
+        margin-top: 0.35rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+    .borrador-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.72rem;
+        padding: 0.18rem 0.45rem;
+        border-radius: 999px;
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #e5e7eb;
+    }
+    .borrador-chip.warn {
+        background: #fff7ed;
+        color: #9a3412;
+        border-color: #fdba74;
+    }
+    .borrador-chip.soft {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-color: #bfdbfe;
+    }
     .action-btn.continuar {
         background: var(--admin-primary);
         color: white;
@@ -43,8 +70,7 @@
     .action-btn.continuar:hover {
         background: var(--admin-primary-hover);
     }
-    
-    /* Colores por tipo de obra */
+
     .tipo-badge.coleccion_manuscrita {
         background: #e8f5e8;
         color: #2d6a2d;
@@ -80,8 +106,7 @@
         color: #92400e;
         border: 1px solid #fde68a;
     }
-    
-    /* Estados de publicación */
+
     .estado-badge {
         font-size: 0.7rem;
         padding: 0.2rem 0.4rem;
@@ -128,12 +153,12 @@
         <div class="row g-3 align-items-center mb-3">
             <div class="col-lg-8">
                 <form method="get" class="autoridad-search" role="search">
-                    <input type="text" name="q" class="form-control" placeholder="Buscar por título" value="{{ request.GET.q }}">
+                    <input type="text" name="q" class="form-control" placeholder="Buscar por titulo, control, obra o catalogador" value="{{ request.GET.q }}">
                     <button type="submit" class="admin-btn admin-btn-secondary admin-btn-sm" aria-label="Buscar">
                         <i class="bi bi-search"></i>
                     </button>
                     {% if request.GET.q %}
-                    <a href="{% url 'catalogacion:lista_borradores' %}" class="admin-btn admin-btn-light admin-btn-sm" aria-label="Limpiar búsqueda">
+                    <a href="{% url 'catalogacion:lista_borradores' %}" class="admin-btn admin-btn-light admin-btn-sm" aria-label="Limpiar busqueda">
                         <i class="bi bi-x"></i>
                     </a>
                     {% endif %}
@@ -149,10 +174,10 @@
             <table class="admin-table">
                 <thead>
                     <tr>
-                        <th>Título / Tipo</th>
+                        <th>Titulo / Contexto</th>
                         <th>Tipo de obra</th>
-                        <th>Pestaña actual</th>
-                        <th>Última modificación</th>
+                        <th>Pestana actual</th>
+                        <th>Ultima modificacion</th>
                         <th class="text-end">Acciones</th>
                     </tr>
                 </thead>
@@ -161,40 +186,63 @@
                     <tr>
                         <td>
                             <div class="borrador-titulo">
-                                {{ borrador.titulo_temporal|default:"Sin título"|truncatewords:8 }}
+                                {{ borrador.titulo_identificable|truncatewords:8 }}
                             </div>
                             <div class="borrador-subtitulo">
                                 {% if borrador.obra_objetivo_id %}
-                                    <i class="bi bi-pencil-square"></i> Edición de obra #{{ borrador.obra_objetivo_id }}
+                                    <i class="bi bi-pencil-square"></i>
+                                    Edicion de obra #{{ borrador.obra_objetivo_id }}
+                                    {% if borrador.obra_objetivo.num_control %}
+                                        · {{ borrador.obra_objetivo.num_control }}
+                                    {% endif %}
                                 {% else %}
-                                    <i class="bi bi-file-earmark-plus"></i> Creación nueva
+                                    <i class="bi bi-file-earmark-plus"></i> Creacion nueva
+                                {% endif %}
+                            </div>
+                            <div class="borrador-meta">
+                                <span class="borrador-chip soft">
+                                    <i class="bi bi-hash"></i> Borrador #{{ borrador.id }}
+                                </span>
+                                {% if borrador.numero_identificable %}
+                                <span class="borrador-chip">
+                                    <i class="bi bi-upc-scan"></i> {{ borrador.numero_identificable }}
+                                </span>
+                                {% endif %}
+                                {% if request.user.es_admin %}
+                                <span class="borrador-chip">
+                                    <i class="bi bi-person"></i> {{ borrador.usuario_identificable }}
+                                </span>
+                                {% endif %}
+                                {% if borrador.duplicados_similares > 1 %}
+                                <span class="borrador-chip warn">
+                                    <i class="bi bi-files"></i> {{ borrador.duplicados_similares }} similares
+                                </span>
                                 {% endif %}
                             </div>
                         </td>
                         <td>
                         {% if borrador.tipo_registro == 'd' %}
                             {% if borrador.nivel_bibliografico == 'c' %}
-                                <span class="badge bg-info">Colección Manuscrita</span>
+                                <span class="badge bg-info">Coleccion Manuscrita</span>
                             {% elif borrador.nivel_bibliografico == 'a' %}
-                                <span class="badge bg-info">Obra en Colección Manuscrita</span>
+                                <span class="badge bg-info">Obra en Coleccion Manuscrita</span>
                             {% else %}
                                 <span class="badge bg-info">Obra Individual Manuscrita</span>
                             {% endif %}
                         {% else %}
                             {% if borrador.nivel_bibliografico == 'c' %}
-                                <span class="badge bg-primary">Colección Impresa</span>
+                                <span class="badge bg-primary">Coleccion Impresa</span>
                             {% elif borrador.nivel_bibliografico == 'a' %}
-                                <span class="badge bg-primary">Obra en Colección Impresa</span>
+                                <span class="badge bg-primary">Obra en Coleccion Impresa</span>
                             {% else %}
                                 <span class="badge bg-primary">Obra Individual Impresa</span>
                             {% endif %}
                         {% endif %}
-                        
                         </td>
-                        
+
                         <td class="muted">
                             {% with tab=tab_labels|get_item:borrador.pestana_actual %}
-                                {{ tab|default:"—" }}
+                                {{ tab|default:"-" }}
                             {% endwith %}
                         </td>
                         <td class="muted">
@@ -205,27 +253,27 @@
                                 {% elif borrador.dias_desde_modificacion == 1 %}
                                     Ayer
                                 {% else %}
-                                    Hace {{ borrador.dias_desde_modificacion }} días
+                                    Hace {{ borrador.dias_desde_modificacion }} dias
                                 {% endif %}
                             </small>
                         </td>
                         <td class="text-end">
                             <div class="autoridad-actions">
                                 {% if borrador.obra_objetivo_id %}
-                                    <a href="{% url 'catalogacion:editar_obra' borrador.obra_objetivo_id %}?borrador={{ borrador.id }}" 
-                                       class="action-btn continuar" title="Continuar edición">
+                                    <a href="{% url 'catalogacion:editar_obra' borrador.obra_objetivo_id %}?borrador={{ borrador.id }}"
+                                       class="action-btn continuar" title="Continuar edicion">
                                         <i class="bi bi-arrow-clockwise"></i>
                                     </a>
                                 {% else %}
-                                    <a href="{% url 'catalogacion:recuperar_borrador' borrador.id %}" 
+                                    <a href="{% url 'catalogacion:recuperar_borrador' borrador.id %}"
                                        class="action-btn continuar" title="Continuar">
                                         <i class="bi bi-arrow-clockwise"></i>
                                     </a>
                                 {% endif %}
-                                <button type="button" 
-                                        class="action-btn delete" 
+                                <button type="button"
+                                        class="action-btn delete"
                                         title="Descartar"
-                                        onclick="confirmarDescarte({{ borrador.id }}, '{{ borrador.titulo_temporal|escapejs|default:"Sin título" }}')">
+                                        onclick="confirmarDescarte({{ borrador.id }}, '{{ borrador.titulo_identificable|escapejs }}')">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </div>
@@ -239,19 +287,19 @@
         {% if is_paginated %}
         <div class="admin-pagination">
             {% if page_obj.has_previous %}
-            <a class="admin-pagination-btn" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" title="Primera página">
+            <a class="admin-pagination-btn" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" title="Primera pagina">
                 <i class="bi bi-chevron-double-left"></i>
             </a>
-            <a class="admin-pagination-btn" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" title="Página anterior">
+            <a class="admin-pagination-btn" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" title="Pagina anterior">
                 <i class="bi bi-chevron-left"></i>
             </a>
             {% endif %}
             <span class="admin-pagination-info">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
             {% if page_obj.has_next %}
-            <a class="admin-pagination-btn" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" title="Página siguiente">
+            <a class="admin-pagination-btn" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" title="Pagina siguiente">
                 <i class="bi bi-chevron-right"></i>
             </a>
-            <a class="admin-pagination-btn" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" title="Última página">
+            <a class="admin-pagination-btn" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" title="Ultima pagina">
                 <i class="bi bi-chevron-double-right"></i>
             </a>
             {% endif %}
@@ -259,11 +307,10 @@
         {% endif %}
 
         {% else %}
-        <!-- Estado vacío -->
         <div class="autoridad-empty">
             <div class="icon"><i class="bi bi-inbox"></i></div>
             <p>No hay borradores guardados{% if request.GET.q %} para "{{ request.GET.q }}"{% endif %}.</p>
-            <p class="text-muted">Los borradores se guardan automáticamente mientras trabajas en una obra.</p>
+            <p class="text-muted">Los borradores se guardan automaticamente mientras trabajas en una obra.</p>
             <a href="{% url 'catalogacion:seleccionar_tipo' %}" class="admin-btn admin-btn-primary admin-btn-sm">
                 <i class="bi bi-plus"></i> Crear nueva obra
             </a>
@@ -272,7 +319,6 @@
     </div>
 </div>
 
-<!-- Modal de confirmación -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -281,8 +327,8 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
-                <p>¿Descartar el borrador <strong id="borrador-titulo"></strong>?</p>
-                <p class="text-muted mb-0">Esta acción no se puede deshacer.</p>
+                <p>Descartar el borrador <strong id="borrador-titulo"></strong>?</p>
+                <p class="text-muted mb-0">Esta accion no se puede deshacer.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -300,14 +346,12 @@
 
 {% block catalogacion_js %}
 <script>
-    
     const URL_DESCARTE_BASE = `{% url 'catalogacion:descartar_borrador' pk=0 %}`;
 
     function confirmarDescarte(borradorId, titulo) {
-        document.getElementById('borrador-titulo').textContent = titulo || 'Sin título';
+        document.getElementById('borrador-titulo').textContent = titulo || 'Sin titulo';
 
         const deleteBase = URL_DESCARTE_BASE.replace('0', borradorId);
-
         document.getElementById('delete-form').action = deleteBase;
 
         const modal = new bootstrap.Modal(
@@ -317,4 +361,3 @@
     }
 </script>
 {% endblock catalogacion_js %}
-

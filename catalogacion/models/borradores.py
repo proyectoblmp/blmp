@@ -4,6 +4,7 @@ Permite guardar el progreso de catalogación y recuperarlo posteriormente
 """
 
 import json
+import re
 
 from django.db import models
 from django.utils import timezone
@@ -174,3 +175,43 @@ class BorradorObra(models.Model):
             "impreso_coleccion": "Impreso Colección",
         }
         return tipos.get(self.tipo_obra, self.tipo_obra)
+
+    @property
+    def titulo_identificable(self):
+        """Mejor tÃ­tulo disponible para reconocer el borrador en listados."""
+        if self.titulo_temporal and self.titulo_temporal.strip():
+            return self.titulo_temporal.strip()
+        if self.obra_objetivo and self.obra_objetivo.titulo_principal:
+            return self.obra_objetivo.titulo_principal.strip()
+        return "Sin tÃ­tulo"
+
+    @property
+    def numero_identificable(self):
+        """Mejor nÃºmero de control disponible para reconocer el borrador."""
+        if self.num_control_temporal and self.num_control_temporal.strip():
+            return self.num_control_temporal.strip()
+        if self.obra_objetivo and self.obra_objetivo.num_control:
+            return self.obra_objetivo.num_control.strip()
+        return ""
+
+    @property
+    def usuario_identificable(self):
+        """Texto breve para identificar al dueÃ±o del borrador."""
+        if not self.usuario:
+            return "Sin usuario"
+        if self.usuario.nombre_completo and self.usuario.nombre_completo.strip():
+            return self.usuario.nombre_completo.strip()
+        return self.usuario.email
+
+    @property
+    def clave_similitud(self):
+        """
+        Clave para agrupar borradores aparentemente del mismo trabajo.
+        Sirve para marcar duplicados similares en la lista.
+        """
+        if self.obra_objetivo_id:
+            return f"edicion:{self.usuario_id}:{self.obra_objetivo_id}"
+
+        numero = (self.numero_identificable or "").strip().lower()
+        titulo = re.sub(r"\s+", " ", self.titulo_identificable.strip().lower())
+        return f"creacion:{self.usuario_id}:{self.tipo_obra}:{numero}:{titulo}"
