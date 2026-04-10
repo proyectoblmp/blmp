@@ -77,8 +77,17 @@ fi
 LAST_MSG=$(git log -1 --pretty=format:"%s")
 LAST_AUTHOR=$(git log -1 --pretty=format:"%an")
 LAST_DATE=$(git log -1 --pretty=format:"%cd" --date=format:'%Y-%m-%d %H:%M')
-SUMMARY_COMMIT="${LAST_MSG} ${DIM}($(git rev-parse --short HEAD) · ${LAST_AUTHOR} · ${LAST_DATE})${RESET}"
-ok "Código listo"
+LAST_HASH=$(git rev-parse --short HEAD)
+
+# Construir resumen del commit actual (siempre mostrar el último)
+if [[ "$BEFORE" == "$REMOTE" ]]; then
+  # Sin cambios nuevos — hacer más explícito que se despliega el último commit
+  SUMMARY_COMMIT="${LAST_MSG} ${DIM}(${LAST_HASH} · ${LAST_AUTHOR} · ${LAST_DATE} · sin cambios nuevos)${RESET}"
+else
+  SUMMARY_COMMIT="${LAST_MSG} ${DIM}(${LAST_HASH} · ${LAST_AUTHOR} · ${LAST_DATE})${RESET}"
+fi
+
+ok "Código listo — HEAD: $LAST_HASH"
 
 # ── 2. Dependencias ───────────────────────────────────────────────────────────
 step "Dependencias"
@@ -166,10 +175,13 @@ echo -e "\n${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━
 echo -e "${GREEN}${BOLD}   ✓ Despliegue completado${RESET}"
 echo -e "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo -e ""
-echo -e "  ${BOLD}Commit   ${RESET} ${SUMMARY_COMMIT}"
-echo -e "  ${BOLD}Git      ${RESET} ${SUMMARY_GIT}"
-echo -e "  ${BOLD}Migracs  ${RESET} ${SUMMARY_MIGRATE}"
-echo -e "  ${BOLD}Estáticos${RESET} ${SUMMARY_STATIC}"
-echo -e "  ${BOLD}Sitio    ${RESET} https://blmp.unl.edu.ec/"
-echo -e "  ${BOLD}Hora     ${RESET} ${DEPLOY_START} → $(date '+%H:%M:%S')"
+echo -e "  ${BOLD}Última versión${RESET}"
+echo -e "    ${SUMMARY_COMMIT}"
+echo -e ""
+echo -e "  ${BOLD}Cambios      ${RESET} ${SUMMARY_GIT}"
+echo -e "  ${BOLD}Migraciones  ${RESET} ${SUMMARY_MIGRATE}"
+echo -e "  ${BOLD}Estáticos    ${RESET} ${SUMMARY_STATIC}"
+echo -e ""
+echo -e "  ${BOLD}Sitio        ${RESET} https://blmp.unl.edu.ec/"
+echo -e "  ${BOLD}Duración     ${RESET} ${DEPLOY_START} → $(date '+%H:%M:%S')"
 echo -e ""

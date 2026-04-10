@@ -155,12 +155,13 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        # En producción (DEBUG=False): hash en el nombre del archivo → fuerza refresco de caché
-        # En desarrollo (DEBUG=True): comportamiento estándar sin hash
+        # En producción (DEBUG=False): WhiteNoise comprime + hash en el nombre
+        # Genera: archivo.hash.js + archivo.hash.js.gz (Nginx sirve .gz automáticamente)
+        # En desarrollo (DEBUG=True): sin hash, sin compresión (para desarrollo rápido)
         "BACKEND": (
             "django.contrib.staticfiles.storage.StaticFilesStorage"
             if DEBUG
-            else "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
         ),
     },
 }

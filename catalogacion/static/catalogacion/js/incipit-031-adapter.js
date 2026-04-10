@@ -302,8 +302,10 @@
 
     if (existingPaec) {
       console.log("[incipit-031-adapter] Cargando íncipit existente:", existingPaec.substring(0, 60));
-      CanvasIncipit.initializeCanvas("incipit_canvas_0", "edit", existingPaec);
+      // IMPORTANTE: asignar a #incipitPaec ANTES de initializeCanvas("edit"),
+      // porque el motor lee ese input directamente e ignora el parámetro paec.
       hiddenPaec.value = existingPaec;
+      CanvasIncipit.initializeCanvas("incipit_canvas_0", "edit", existingPaec);
       fillFieldsFromPaeCode(existingPaec);
     } else {
       CanvasIncipit.initializeCanvas("incipit_canvas_0", "add", "");
