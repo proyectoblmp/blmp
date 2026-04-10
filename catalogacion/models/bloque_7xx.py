@@ -284,6 +284,15 @@ class NumeroControl773(models.Model):
         help_text="Referencia al registro cuyo 001 se usará en $w",
     )
 
+    enlace_774 = models.ForeignKey(
+        "EnlaceUnidadConstituyente774",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="numeros_control_773",
+        help_text="Slot 774 en la colección al que corresponde esta obra hija (referencia explícita)",
+    )
+
     class Meta:
         verbose_name = "773 $w – Número de control"
         verbose_name_plural = "773 $w – Números de control (R)"

@@ -95,15 +95,12 @@
             {% endif %}
 
 
-            {# Campo 031 - Íncipit musical (Repetible) #}
+            {# Campo 031 - Íncipit musical (no repetible: 1 canvas por obra) #}
             {% if 'incipits_musicales' in formsets_visibles %}
             <div class="campo-marc">
                 <div class="campo-titulo">
                     <span class="badge-marc">031</span>
                     <h6>Íncipit Musical</h6>
-                    <button type="button" class="campo-add-btn" data-formset-target="incipits" title="Agregar Íncipit">
-                        <i class="bi bi-plus"></i>
-                    </button>
                     <span class="campo-help-btn" data-field-code="031" tabindex="0" title="Ayuda">
                         <i class="bi bi-question-circle"></i>
                     </span>

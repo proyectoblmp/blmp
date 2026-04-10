@@ -771,6 +771,11 @@
       modalTitle.innerHTML = '<i class="bi bi-search"></i> Buscar obra registrada';
       inputBuscar.value = "";
       resultados.innerHTML = "";
+      // Limpiar enlace_774_id para que el usuario deba seleccionar un slot explícito
+      if (targetContainer) {
+        const enlace774Input = targetContainer.querySelector('.enlace-774-id-input');
+        if (enlace774Input) enlace774Input.value = "";
+      }
     }
 
     function showPhase2(coleccion, obras774) {
@@ -810,6 +815,10 @@
     async function selectObra774(coleccion, obra774) {
       if (targetTextInput) targetTextInput.value = coleccion.num_control;
       if (targetHiddenInput) targetHiddenInput.value = coleccion.id;
+
+      // Guardar el id del slot 774 explícito para evitar fuzzy matching en la signal
+      const enlace774Input = targetContainer.querySelector('.enlace-774-id-input');
+      if (enlace774Input && obra774.id) enlace774Input.value = obra774.id;
 
       // 100/245 desde obra 774
       const compositorTexto = document.getElementById("id_compositor_texto");

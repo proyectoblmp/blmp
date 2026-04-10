@@ -53,6 +53,22 @@ TIEMPOS_MUSICALES = [
 class IncipitMusicalForm(forms.ModelForm):
     """Formulario para campo 031 - Íncipit musical"""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # El modelo tiene blank=True en tiempo → Django lo haría required=False.
+        # Forzamos required para que el SELECT no se guarde vacío.
+        self.fields["tiempo"].required = True
+
+    def clean(self):
+        cleaned_data = super().clean()
+        notacion_musical = cleaned_data.get("notacion_musical", "").strip()
+        tiempo = cleaned_data.get("tiempo", "").strip()
+
+        # Si hay notación musical, el tiempo es obligatorio
+        if notacion_musical and not tiempo:
+            self.add_error("tiempo", "El tiempo es obligatorio cuando hay notación musical.")
+
+        return cleaned_data
 
     class Meta:
         model = IncipitMusical

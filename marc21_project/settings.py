@@ -176,7 +176,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # (ej: campo 774 con formset anidado genera ~24 campos/fila; 80 filas = ~1,920 campos)
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10_000
 
-# Configuración de logging para desarrollo
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -194,12 +193,12 @@ LOGGING = {
     },
     "root": {
         "handlers": ["console"],
-        "level": "INFO",
+        "level": "WARNING" if not DEBUG else "INFO",
     },
     "loggers": {
         "catalogacion": {
             "handlers": ["console"],
-            "level": "DEBUG",
+            "level": "DEBUG" if DEBUG else "WARNING",
             "propagate": False,
         },
     },

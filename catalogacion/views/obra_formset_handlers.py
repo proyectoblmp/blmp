@@ -496,10 +496,27 @@ def save_numeros_control_773(request_post, formset):
             continue
 
         form.instance.numeros_control.all().delete()
-        NumeroControl773.objects.create(
+        nc = NumeroControl773.objects.create(
             enlace_773=form.instance,
             obra_relacionada_id=obra_id_int,
         )
+
+        # Guardar referencia explícita al slot 774 (evita fuzzy matching en signal)
+        suffix = post_key[len("w_773_"):]
+        enlace_774_raw = request_post.get(f"enlace_774_id_{suffix}", "").strip()
+        if enlace_774_raw:
+            try:
+                e774_int = int(enlace_774_raw)
+                from catalogacion.models import EnlaceUnidadConstituyente774
+                if EnlaceUnidadConstituyente774.objects.filter(pk=e774_int).exists():
+                    nc.enlace_774_id = e774_int
+                    nc.save(update_fields=["enlace_774"])
+                    logger.info(
+                        f"[773 $w] enlace_774_id={e774_int} guardado en NumeroControl773 pk={nc.pk}"
+                    )
+            except (ValueError, TypeError):
+                pass
+
         logger.info(
             f"[773 $w] Guardado: enlace_pk={form.instance.pk}, obra_id={obra_id_int}"
         )

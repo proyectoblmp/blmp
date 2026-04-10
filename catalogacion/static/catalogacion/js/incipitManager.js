@@ -2180,7 +2180,7 @@ function CanvasClass() {
           paecTime = context.incipit.getPAECByName(time.name);
           var031o = paecTime;
           // se agrega tiempo al PAEC
-          paec += "@" + paecTime;
+          paec += "@" + paecTime + " ";
         }
       } else {
         if (context.drawIncipitElements[i].hasBar) {
@@ -2274,7 +2274,7 @@ function CanvasClass() {
     if (context.operation == "add" || context.operation == "edit") {
       $("#031g").val(var031g);
       $("#031n").val(var031n);
-      $("#031o").val(var031o);
+      if (var031o !== "nd") { $("#031o").val(var031o); }
       $("#031p").val(var031p);
       $("#0312").val("pe");
 
@@ -2492,8 +2492,14 @@ function CanvasClass() {
         //'''DC''BAGFEDC'BAGFEDC,BAGFEDC,,BAFEDC,,,B
 
         if (paec[index] == "-") {
-          elem = context.incipit.getNoteByPAEC(paecRythm + "-");
-          position = elem.yPosition;
+          // Si paecRythm está vacío (PAEC mal formado sin ritmo antes del silencio),
+          // usar "4" (negra) como fallback para evitar null reference.
+          var effectiveRythm = paecRythm || "4";
+          elem = context.incipit.getNoteByPAEC(effectiveRythm + "-");
+          if (!elem) {
+            elem = context.incipit.getNoteByPAEC("4-"); // fallback: silencio de negra
+          }
+          position = elem ? elem.yPosition : 9;
         } else {
           while (paec[index] != notesArray[i]) {
             i++;
@@ -2513,10 +2519,13 @@ function CanvasClass() {
           if (currentClef == "bass") position -= 12;
 
           elem = context.incipit.getNoteByPAEC(paecRythm);
+          if (!elem) {
+            elem = context.incipit.getNoteByPAEC("4"); // fallback: negra
+          }
         }
 
         yPosition = position;
-        noteName = elem.name;
+        noteName = elem ? elem.name : noteName;
       }
 
       if (

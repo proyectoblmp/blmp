@@ -2,6 +2,8 @@
 Modelos MARC21 - Bloque 0XX
 Campos de control, números de identificación y códigos
 """
+import re
+
 from django.db import models
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
@@ -172,6 +174,23 @@ class IncipitMusical(models.Model):
         return f"{header} {body}".strip()
 
     def save(self, *args, **kwargs):
+        # Si el catalogador pegó el PAEC completo en notacion_musical (con cabecera),
+        # extraemos clave, armadura y tiempo antes de continuar.
+        txt = (self.notacion_musical or "").strip()
+        if txt:
+            if not self.clave:
+                m = re.match(r'%([GCFgcf][A-Za-z0-9\-]*)', txt)
+                if m:
+                    self.clave = m.group(1)
+            if not self.armadura:
+                m = re.search(r'\$([A-Za-z0-9]+)', txt)
+                if m:
+                    self.armadura = m.group(1)
+            if not self.tiempo:
+                m = re.search(r'@(\d+/\d+)', txt)
+                if m:
+                    self.tiempo = m.group(1)
+
         # Autogenera paec_full si hay body
         # `build_paec_full` es una `@property` que retorna un `str`,
         # por eso debe usarse sin paréntesis.

@@ -195,6 +195,8 @@ IncipitMusicalFormSet = inlineformset_factory(
     form=IncipitMusicalForm,
     formset=IncipitMusicalFormSet,
     extra=0,  # No agregar formularios extra automáticamente (usuario agrega con botón "+")
+    max_num=1,  # Máximo 1 íncipit por obra (canvas soporta solo 1)
+    validate_max=True,
     can_delete=True,
 )
 

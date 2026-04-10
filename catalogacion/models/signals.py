@@ -11,7 +11,6 @@ from .bloque_7xx import (
     EnlaceUnidadConstituyente774,
     NumeroControl774,
 )
-from .autoridades import AutoridadTituloUniforme
 
 
 @receiver(post_save, sender=CodigoPaisEntidad)
@@ -84,53 +83,104 @@ def actualizar_signatura_por_cambio_pais(sender, instance, raw=False, **kwargs):
 # Bidireccionalidad 773 $w ↔ 774 $w
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _titulos_autoridad_posibles(obra):
+    """Retorna los FK de título uniforme que mejor representan a la obra hija."""
+    posibles = []
+    if getattr(obra, "titulo_240_id", None):
+        posibles.append(obra.titulo_240_id)
+    if getattr(obra, "titulo_uniforme_id", None) and obra.titulo_uniforme_id not in posibles:
+        posibles.append(obra.titulo_uniforme_id)
+    return posibles
+
+
+def _asignar_w_774(enlace_774, obra_hijo):
+    """
+    Asigna $w de obra_hijo al slot enlace_774.
+    Limpia cualquier $w duplicado de la misma obra en otros slots de la colección.
+    """
+    # Borrar este $w de cualquier otro slot donde esté mal colocado
+    NumeroControl774.objects.filter(
+        enlace_774__obra=enlace_774.obra,
+        obra_relacionada=obra_hijo,
+    ).exclude(enlace_774=enlace_774).delete()
+
+    NumeroControl774.objects.get_or_create(
+        enlace_774=enlace_774,
+        obra_relacionada=obra_hijo,
+    )
+
+
 @receiver(post_save, sender=NumeroControl773)
 def sincronizar_774_al_guardar_773(sender, instance, created, raw=False, **kwargs):
+    """
+    Al guardar un 773 $w (obra hija → colección padre), asigna el $w al slot 774
+    correcto de la colección.
+
+    Prioridad:
+    1. FK explícito instance.enlace_774 (guardado desde el modal de selección).
+    2. ¿Ya hay un $w correcto para esta obra en la colección? → no tocar.
+    3. Búsqueda por FK exacto compositor+título (sin fuzzy text).
+    NUNCA crea nuevas filas 774 automáticamente.
+    """
     if raw:
         return
-    """
-    Al guardar un 773 $w (obra hijo → colección padre), busca en la colección
-    un 774 cuyo $t coincide con el título de la obra hijo y le asigna el $w.
-    Si no existe ese 774 en la colección, lo crea completo ($a + $t + $w).
-
-    Nota: en MARC21 el 774 de la colección describe la obra HIJO, por lo que
-    $t debe ser el título de la obra hijo, no el título de la colección.
-    """
     try:
+        import logging
+        logger = logging.getLogger('marc21')
+
         obra_hijo  = instance.enlace_773.obra
         obra_padre = instance.obra_relacionada
-
-        # Título de la obra hijo: FK preferido, si no hay, buscar por titulo_principal
-        titulo_hijo = (
-            obra_hijo.titulo_240
-            or obra_hijo.titulo_uniforme
-            or AutoridadTituloUniforme.objects.filter(
-                titulo__iexact=obra_hijo.titulo_principal
-            ).first()
-        )
         persona_hijo = obra_hijo.compositor
 
-        if not titulo_hijo or not persona_hijo:
-            return  # Sin datos suficientes para crear/vincular el 774
+        # PRIORIDAD 1: FK explícito guardado desde el modal de selección
+        if instance.enlace_774_id:
+            enlace_774 = instance.enlace_774
+            if enlace_774 and enlace_774.obra_id == obra_padre.id:
+                _asignar_w_774(enlace_774, obra_hijo)
+                return
+            else:
+                logger.warning(
+                    f"[773 sync] enlace_774_id={instance.enlace_774_id} no pertenece "
+                    f"a la colección {obra_padre.num_control} — ignorado"
+                )
 
-        # Buscar en la colección si ya existe un 774 con el $t del hijo
-        enlace_774 = obra_padre.enlaces_unidades_774.filter(titulo=titulo_hijo).first()
+        # PRIORIDAD 2: ¿ya hay un $w válido para esta obra en la colección?
+        enlace_actual = EnlaceUnidadConstituyente774.objects.filter(
+            obra=obra_padre,
+            numeros_control__obra_relacionada=obra_hijo,
+        ).order_by("pk").first()
+        if enlace_actual:
+            return  # ya vinculado, no modificar
+
+        # PRIORIDAD 3: buscar por FK exacto (compositor + título uniforme)
+        if not persona_hijo:
+            return
+
+        titulo_ids = _titulos_autoridad_posibles(obra_hijo)
+        if not titulo_ids:
+            logger.warning(
+                f"[773 sync] Sin slot 774 exacto para {obra_hijo.num_control} "
+                f"en {obra_padre.num_control}: obra hija sin título uniforme (240/130). "
+                f"Edita la obra y selecciona el slot correcto en el modal."
+            )
+            return
+
+        enlace_774 = (
+            obra_padre.enlaces_unidades_774
+            .filter(encabezamiento_principal=persona_hijo, titulo_id__in=titulo_ids)
+            .order_by("pk")
+            .first()
+        )
 
         if not enlace_774:
-            # La colección no tenía ese 774: crearlo completo ($a + $t)
-            enlace_774 = EnlaceUnidadConstituyente774.objects.create(
-                obra=obra_padre,
-                encabezamiento_principal=persona_hijo,
-                titulo=titulo_hijo,
+            logger.warning(
+                f"[773 sync] Sin slot 774 exacto para {obra_hijo.num_control} "
+                f"en {obra_padre.num_control}. "
+                f"Edita la obra y selecciona el slot correcto en el modal."
             )
+            return
 
-        # Eliminar cualquier $w incorrecto para este enlace antes de fijar el correcto
-        enlace_774.numeros_control.exclude(obra_relacionada=obra_hijo).delete()
-        # Asegurar que el $w apunta al hijo
-        NumeroControl774.objects.get_or_create(
-            enlace_774=enlace_774,
-            obra_relacionada=obra_hijo,
-        )
+        _asignar_w_774(enlace_774, obra_hijo)
 
     except Exception as e:
         import logging
@@ -143,27 +193,43 @@ def sincronizar_774_al_guardar_773(sender, instance, created, raw=False, **kwarg
 def limpiar_774_al_borrar_773(sender, instance, **kwargs):
     """
     Al borrar un 773 $w, borra el 774 $w correspondiente en la colección padre.
-    Si el 774 queda sin $w (fue creado automáticamente), lo elimina también.
+    Si el 774 queda sin $w y fue creado automáticamente, lo elimina también.
     """
     try:
         obra_hijo  = instance.enlace_773.obra
         obra_padre = instance.obra_relacionada
 
-        titulo_hijo = (
-            obra_hijo.titulo_240
-            or obra_hijo.titulo_uniforme
-            or AutoridadTituloUniforme.objects.filter(
-                titulo__iexact=obra_hijo.titulo_principal
-            ).first()
+        enlace_774 = (
+            obra_padre.enlaces_unidades_774.filter(
+                numeros_control__obra_relacionada=obra_hijo
+            )
+            .order_by("pk")
+            .first()
         )
-        if not titulo_hijo:
-            return
 
-        enlace_774 = obra_padre.enlaces_unidades_774.filter(titulo=titulo_hijo).first()
+        if not enlace_774 and getattr(instance, 'enlace_774_id', None):
+            enlace_774 = EnlaceUnidadConstituyente774.objects.filter(
+                pk=instance.enlace_774_id,
+                obra=obra_padre,
+            ).first()
+
+        if not enlace_774:
+            titulo_ids = _titulos_autoridad_posibles(obra_hijo)
+            if titulo_ids and obra_hijo.compositor:
+                enlace_774 = (
+                    obra_padre.enlaces_unidades_774
+                    .filter(
+                        encabezamiento_principal=obra_hijo.compositor,
+                        titulo_id__in=titulo_ids,
+                    )
+                    .order_by("pk")
+                    .first()
+                )
+
         if enlace_774:
+            # Solo borra el $w (NC774), nunca el slot 774 en sí.
+            # Los slots son creados manualmente por el catalogador y no deben eliminarse automáticamente.
             enlace_774.numeros_control.filter(obra_relacionada=obra_hijo).delete()
-            if not enlace_774.numeros_control.exists():
-                enlace_774.delete()
 
     except Exception:
         pass  # La obra o el enlace ya pueden haber sido eliminados en cascada

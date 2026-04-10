@@ -108,6 +108,11 @@ FORMSET 773 – Documento Fuente (R)
                                 class="obra-relacionada-id-input"
                                 name="w_773_{% if form.instance.pk %}{{ form.instance.pk }}{% else %}{{ forloop.counter0 }}{% endif %}"
                                 value="{% if form.instance.pk %}{% with nc=form.instance.numeros_control.first %}{% if nc.obra_relacionada %}{{ nc.obra_relacionada.id }}{% endif %}{% endwith %}{% endif %}">
+                            <!-- Hidden con ID del slot 774 explícito (evita fuzzy matching) -->
+                            <input type="hidden"
+                                class="enlace-774-id-input"
+                                name="enlace_774_id_{% if form.instance.pk %}{{ form.instance.pk }}{% else %}{{ forloop.counter0 }}{% endif %}"
+                                value="{% if form.instance.pk %}{% with nc=form.instance.numeros_control.first %}{{ nc.enlace_774_id|default:'' }}{% endwith %}{% endif %}">
                         </div>
                     </div>
 
@@ -165,6 +170,15 @@ FORMSET 773 – Documento Fuente (R)
                         <input type="text"
                                class="form-control"
                                placeholder="Ej: 000123456">
+                        <!-- Hiddens para obra relacionada y slot 774 explícito -->
+                        <input type="hidden"
+                               class="obra-relacionada-id-input"
+                               name="w_773___prefix__"
+                               value="">
+                        <input type="hidden"
+                               class="enlace-774-id-input"
+                               name="enlace_774_id___prefix__"
+                               value="">
                     </div>
 
                 </div>
