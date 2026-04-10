@@ -115,25 +115,43 @@ ok "Estáticos listos"
 
 # ── 5. Verificar configuración ────────────────────────────────────────────────
 step "Verificando configuración Django"
-$PYTHON manage.py check --deploy 2>&1 | grep -E "^System check|ERROR|WARNING" || true
-ok "Check OK"
+CHECK_OUT=$($PYTHON manage.py check --deploy 2>&1 || true)
+ERRORS=$(echo "$CHECK_OUT" | grep -c "^.*: (security\." || true)
+if echo "$CHECK_OUT" | grep -q "^System check identified 0"; then
+  ok "Check OK (sin issues)"
+elif echo "$CHECK_OUT" | grep -q "ERROR"; then
+  echo "$CHECK_OUT" | grep -E "ERROR|WARNINGS|^System check" >&2
+  fail "Django check encontró ERRORES — despliegue abortado."
+else
+  # Solo warnings — mostrarlos pero continuar
+  echo "$CHECK_OUT" | grep -v "^$" | sed 's/^/    /'
+  warn "Check con warnings (ver arriba) — continuando de todas formas"
+fi
 
 # ── 6. Reiniciar servicio ─────────────────────────────────────────────────────
+# Gunicorn corre directamente (sin systemd). El master process recibe HUP
+# para recargar workers sin perder conexiones activas.
 step "Reiniciando servicio"
-if sudo systemctl restart "$SERVICE" 2>/dev/null; then
-  dim "Reiniciado vía systemctl sudo"
-elif systemctl --user restart "$SERVICE" 2>/dev/null; then
-  dim "Reiniciado vía systemctl --user"
-else
-  warn "systemctl falló — intentando HUP como último recurso..."
-  kill -HUP "$(pgrep -f blmp_web_gunicorn)" 2>/dev/null || fail "No se pudo reiniciar el servicio."
+
+# El master es el proceso gunicorn con PPID=1 (arrancado como daemon)
+GUNICORN_MASTER=$(pgrep -f "gunicorn.*${SERVICE}" 2>/dev/null | head -1)
+if [[ -z "$GUNICORN_MASTER" ]]; then
+  # Fallback: cualquier gunicorn corriendo
+  GUNICORN_MASTER=$(pgrep -f "gunicorn" 2>/dev/null | head -1)
 fi
+
+if [[ -z "$GUNICORN_MASTER" ]]; then
+  fail "No se encontró proceso gunicorn. El servicio no está corriendo."
+fi
+
+kill -HUP "$GUNICORN_MASTER"
+dim "HUP enviado a master gunicorn PID $GUNICORN_MASTER"
 sleep 3
 
-if systemctl --user is-active --quiet "$SERVICE" 2>/dev/null || pgrep -f blmp_web_gunicorn > /dev/null; then
-  ok "Servicio activo"
+if pgrep -f "gunicorn" > /dev/null 2>&1; then
+  ok "Servicio activo (PID $GUNICORN_MASTER)"
 else
-  fail "Gunicorn no está corriendo. Ver: tail -50 /var/log/blmp/gunicorn_web_error.log"
+  fail "Gunicorn no está corriendo tras el HUP."
 fi
 
 # ── 7. Nginx (opcional) ───────────────────────────────────────────────────────
