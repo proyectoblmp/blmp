@@ -296,8 +296,19 @@
     hiddenPaec.addEventListener("input", syncFromCanvas);
     hiddenPaec.addEventListener("change", syncFromCanvas);
 
-    CanvasIncipit.initializeCanvas("incipit_canvas_0", "add", "");
-    syncFromCanvas();
+    // Si hay un íncipit guardado en BD, cargarlo en el canvas para edición.
+    const existingPaecEl = document.getElementById("incipit_existing_paec");
+    const existingPaec = existingPaecEl ? existingPaecEl.textContent.trim() : "";
+
+    if (existingPaec) {
+      console.log("[incipit-031-adapter] Cargando íncipit existente:", existingPaec.substring(0, 60));
+      CanvasIncipit.initializeCanvas("incipit_canvas_0", "edit", existingPaec);
+      hiddenPaec.value = existingPaec;
+      fillFieldsFromPaeCode(existingPaec);
+    } else {
+      CanvasIncipit.initializeCanvas("incipit_canvas_0", "add", "");
+      syncFromCanvas();
+    }
 
     const parseBtn = document.getElementById("parse-inc-p0");
     if (parseBtn) {

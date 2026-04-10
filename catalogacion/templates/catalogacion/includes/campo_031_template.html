@@ -148,6 +148,9 @@ El botón de agregar campo completo está en el header del campo (campo-add-btn)
             {% if form.instance.pk %}
             <input type="hidden" name="{{ form.prefix }}-id" value="{{ form.instance.pk }}">
             {% endif %}
+            {% if form.instance.paec_full %}
+            <script type="application/json" id="incipit_existing_paec">{{ form.instance.paec_full|escapejs }}</script>
+            {% endif %}
 
 
             {# Fila 1: números a, b, c #}
