@@ -228,3 +228,6 @@ try:
     from .local_settings import *  # noqa: F401, F403
 except ImportError:
     pass
+
+# DEBUG siempre respeta el ambiente, incluso después de local_settings
+DEBUG = os.environ.get("DEBUG", "False") == "True"
