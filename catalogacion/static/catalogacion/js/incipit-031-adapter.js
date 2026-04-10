@@ -347,7 +347,17 @@
         ) {
           CanvasIncipit.TransformIncipitToPAEC(CanvasIncipit);
         }
-        syncFromCanvas();
+
+        // Solo sincronizar si el PAEC tiene cuerpo (notas tras el @tiempo).
+        // Si el canvas está vacío, NO sobreescribir notacion_musical existente.
+        const paecVal = (document.getElementById("incipitPaec") || {}).value || "";
+        const atIdx = paecVal.indexOf("@");
+        const bodyAfterTime = atIdx !== -1
+          ? paecVal.slice(atIdx).replace(/@\d+\/\d+/, "").trim()
+          : "";
+        if (bodyAfterTime.length > 0) {
+          syncFromCanvas();
+        }
       });
     }
   });

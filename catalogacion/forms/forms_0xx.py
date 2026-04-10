@@ -59,6 +59,14 @@ class IncipitMusicalForm(forms.ModelForm):
         # Forzamos required para que el SELECT no se guarde vacío.
         self.fields["tiempo"].required = True
 
+        # Si notacion_musical está vacío pero paec_full tiene datos, mostrarlo
+        # para que el catalogador vea qué está almacenado (solo afecta el display GET,
+        # no el procesamiento POST — self.initial solo aplica a formularios sin bind)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            if not (instance.notacion_musical or "").strip() and instance.paec_full:
+                self.initial['notacion_musical'] = instance.paec_full
+
     def clean(self):
         cleaned_data = super().clean()
         notacion_musical = cleaned_data.get("notacion_musical", "").strip()
